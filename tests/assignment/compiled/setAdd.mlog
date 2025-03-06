@@ -1,0 +1,3 @@
+set x 2
+set y 3
+op add z x y

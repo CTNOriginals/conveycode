@@ -9,11 +9,14 @@ import (
 	"conveycode/compiler"
 )
 
-var filePath string = "tests/code/setAdd.conv"
-var destDir string = "tests/compiled/"
+var testCases [][]string = [][]string{
+	{"tests/assignment/setAdd.conv", "tests/assignment/compiled"},
+}
 
 func main() {
 	fmt.Printf("\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
 
-	compiler.CompileFile(filePath, destDir)
+	for _, testCase := range testCases {
+		compiler.CompileFile(testCase[0], testCase[1])
+	}
 }
