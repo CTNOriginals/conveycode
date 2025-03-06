@@ -2,13 +2,13 @@ package compiler
 
 import (
 	"bufio"
-	"conveycode/compiler/utils"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 
 	"github.com/TwiN/go-color"
+
+	constructors "conveycode/compiler/constructor"
 )
 
 func fileLines(filePath string) []string {
@@ -41,21 +41,17 @@ func CompileFile(path string, dest string) {
 
 	for _, line := range fileLines(path) {
 		var parts []string = strings.Split(line, " ")
-		var operatorSymbols []string = []string{"+", "-", "*", "/"}
 
-		if len(parts) == 0 {
+		//? Skip empty lines
+		if len(parts) == 1 && parts[0] == "" {
 			continue
 		}
 
 		var outLine []string
 
-		if idx := slices.Index(parts, "="); idx != -1 {
-			if utils.ContainsListItem(parts, operatorSymbols) {
-				outLine = append(outLine, "op")
-			} else {
-				outLine = append(outLine, "set", parts[idx-1])
-				outLine = append(outLine, parts[idx:]...)
-			}
+		switch parts[0] {
+		case "var", "set":
+			outLine = append(outLine, constructors.Assignment(parts))
 		}
 
 		statements = append(statements, strings.Join(outLine, " "))
