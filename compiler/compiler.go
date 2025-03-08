@@ -22,7 +22,7 @@ func CompileFile(sourceFilePath string, dest string) {
 	var statements []string
 
 	for _, line := range fileLines(sourceFilePath) {
-		var parts []string = strings.Split(line, " ")
+		parts := strings.Split(line, " ")
 
 		//? Skip empty lines
 		if len(parts) == 1 && parts[0] == "" {
@@ -32,7 +32,7 @@ func CompileFile(sourceFilePath string, dest string) {
 		var outLine []string
 
 		switch parts[0] {
-		case "var", "set":
+		case "var":
 			outLine = append(outLine, constructors.Assignment(parts))
 		}
 
@@ -83,6 +83,9 @@ func writeFile(fileName string, destPath string, lines []string) {
 		destPath += "/"
 	}
 
+	//? Make destination dir to make sure it exists
+	_ = os.MkdirAll(destPath, 0666)
+
 	file, err := os.Create(destPath + fileName + ".mlog")
 	if err != nil {
 		log.Fatal(err)
@@ -90,8 +93,7 @@ func writeFile(fileName string, destPath string, lines []string) {
 	defer file.Close()
 
 	for _, line := range lines {
-		_, err := file.WriteString(line + "\n")
-		if err != nil {
+		if _, err := file.WriteString(line + "\n"); err != nil {
 			log.Fatal(err)
 		}
 	}

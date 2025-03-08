@@ -10,7 +10,9 @@ import (
 )
 
 var testCases [][]string = [][]string{
-	{"tests/assignment/setAdd.conv", "tests/assignment/compiled"},
+	{"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
+	{"tests/print/print.conv", "tests/print/compiled/"},
+	// {"tests/condition/ifStatement.conv", "tests/condition/compiled/"},
 }
 
 func main() {
