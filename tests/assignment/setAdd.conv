@@ -4,5 +4,5 @@ var y = 3
 var z = x + y
 
 x = z - y
-y = x / 3
+y = z
 z = x * y

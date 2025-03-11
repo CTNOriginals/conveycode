@@ -33,7 +33,9 @@ func init() {
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
 
-	var statements [][][]rune
+	var debugStatement [][][]rune
+
+	var statement []string
 
 	for _, line := range fileLines(sourceFilePath) {
 		//#region Sudo Code
@@ -124,17 +126,23 @@ func CompileFile(sourceFilePath string, dest string) {
 			}
 		}
 
-		statements = append(statements, segments)
-	}
-
-	for _, line := range statements {
-		for j, seg := range line {
-			fmt.Printf("%d: %q\n", j, seg)
+		if len(segments) == 0 {
+			continue
 		}
-		fmt.Println("")
+
+		statement = append(statement, ParseSegments(segments))
+		debugStatement = append(debugStatement, segments)
 	}
 
-	// writeFile(getFileName(sourceFilePath), dest, statements[0][0])
+	//? Debug Logging
+	// for _, line := range debugStatement {
+	// 	for j, seg := range line {
+	// 		fmt.Printf("%d: %q\n", j, seg)
+	// 	}
+	// 	fmt.Println("")
+	// }
+
+	writeFile(getFileName(sourceFilePath), dest, statement)
 }
 
 // Parses the file path and returns just the file name without the extension
