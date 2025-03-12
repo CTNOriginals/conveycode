@@ -39,6 +39,19 @@ type Token struct {
 	value     string
 }
 
+var keywords = []string{
+	"var",
+
+	"println",
+	"print",
+
+	"func",
+
+	"if",
+	"else if",
+	"else",
+}
+
 func (token Token) String() string {
 	return fmt.Sprintf("%s: %s", token.tokenType.String(), token.value)
 }
