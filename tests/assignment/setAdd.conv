@@ -1,5 +1,5 @@
-var x = 2
-var y = 3
+var x = 321
+var y = 123
 
 var z = x + y
 

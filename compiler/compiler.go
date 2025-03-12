@@ -32,17 +32,16 @@ func init() {
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
 
-	var instructions [][][]rune = Tokenize(fileLines(sourceFilePath))
+	var instructions [][]Token = Tokenize(fileLines(sourceFilePath))
 	var instructionLines []string
 
 	for _, line := range instructions {
 		//? Debug Logging
-		for _, seg := range line {
-			fmt.Printf("%s\n", string(seg))
-		}
 		fmt.Println("")
-
-		instructionLines = append(instructionLines, ParseSegments(line))
+		for _, seg := range line {
+			fmt.Printf("%s\n", seg)
+		}
+		// instructionLines = append(instructionLines, ParseSegments(line))
 	}
 
 	writeFile(getFileName(sourceFilePath), dest, instructionLines)

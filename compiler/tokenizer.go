@@ -1,72 +1,100 @@
 package compiler
 
 import (
-	"strings"
+	"fmt"
+	"slices"
 	"unicode"
 )
 
-func Tokenize(lines []string) [][][]rune {
-	var instructions [][][]rune
+type TokenType int
 
-	for _, line := range lines {
-		var tokens [][]rune
-		var current []rune
+const (
+	_ TokenType = iota
+	String
+	Number
+	Operator
+	Bracket
+	Keyword
+)
 
-		quoteScope := &QuotedScope{
-			symbol: "",
-			state:  false,
-		}
+func (t TokenType) String() string {
+	switch t {
+	case String:
+		return "String"
+	case Number:
+		return "Number"
+	case Operator:
+		return "Operator"
+	case Bracket:
+		return "Bracket"
+	case Keyword:
+		return "Keyword"
+	default:
+		return "Unknown"
+	}
+}
 
-		line = strings.TrimSpace(line)
+type Token struct {
+	tokenType TokenType
+	value     string
+}
 
-		for i, char := range line {
-			//? If we encounter a space and we're not inside a quote, finalize the current segment.
-			if !quoteScope.state && unicode.IsSpace(char) {
-				if current != nil {
-					tokens = append(tokens, current)
-					current = nil
-				}
+func (token Token) String() string {
+	return fmt.Sprintf("%s: %s", token.tokenType.String(), token.value)
+}
+
+func Tokenize(lines []string) [][]Token {
+	var tokenLines [][]Token
+
+	for _, rawLine := range lines {
+		var line []rune = []rune(rawLine)
+		var tokens []Token
+		var cursor int = 0
+
+		fmt.Println(rawLine, len(line))
+		for cursor < len(line) {
+			var char rune = line[cursor]
+
+			if unicode.IsSpace(rune(char)) {
+				cursor++
 				continue
 			}
 
-			//? Handle quotes (either starting or ending a quoted string).
-			if regQuotes.MatchString(string(char)) && (i == 0 || line[i-1] != '\\') {
-				//? If we are inside a quote and we encounter the same quote symbol, finalize the current string.
-				if quoteScope.state && string(char) == quoteScope.symbol {
-					current = append(current, char)
-					tokens = append(tokens, current)
-					current = nil
-					quoteScope.state = false
-					continue
+			if slices.Contains([]rune{'"', '\'', '`'}, char) && line[cursor-1] != '\\' {
+				var quote rune = char
+				var value []rune = []rune{quote}
+
+				cursor++
+				char = line[cursor]
+
+				for char != quote || line[cursor-1] == '\\' {
+					value = append(value, char)
+					cursor++
+					char = line[cursor]
 				}
 
-				//? If we are outside a quote and have accumulated characters, finalize the current segment.
-				if !quoteScope.state && current != nil {
-					tokens = append(tokens, current)
-					current = nil
-				}
+				value = append(value, char)
+				cursor++
+				char = line[cursor]
 
-				//? Toggle quote state and set the symbol to the current quote type.
-				quoteScope.symbol = string(char)
-				quoteScope.state = !quoteScope.state
+				tokens = append(tokens, Token{
+					tokenType: String,
+					value:     string(value),
+				})
+
+				continue
 			}
 
-			//? Add the current character to the current segment.
-			current = append(current, char)
-
-			//? If it's the last character of the line, finalize the current segment.
-			if i == len(line)-1 && current != nil {
-				tokens = append(tokens, current)
-				current = nil
-			}
+			// log.Panicf("Unknown character: %c\n", char)
+			cursor++
 		}
 
 		if len(tokens) == 0 {
 			continue
 		}
 
-		instructions = append(instructions, tokens)
+		tokenLines = append(tokenLines, tokens)
 	}
 
-	return instructions
+	return tokenLines
 }

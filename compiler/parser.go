@@ -10,7 +10,7 @@ import (
 
 var variables []string
 
-func ParseSegments(tokens [][]rune) string {
+func ParseSegments(tokens []string) string {
 	var parts []string
 
 	for _, seg := range tokens {

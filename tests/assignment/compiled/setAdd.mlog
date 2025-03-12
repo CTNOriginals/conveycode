@@ -1,6 +1,0 @@
-set x 2
-set y 3
-op add z x y
-op sub x z y
-set y z
-op mul z x y

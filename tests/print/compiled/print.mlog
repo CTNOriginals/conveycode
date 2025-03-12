@@ -1,5 +1,0 @@
-# ERROR: print("Hello ")
-# ERROR: print("World\n")
-# ERROR: print(" \"Foo ")
-# ERROR: print("Bar\" ")
-# ERROR: print("foo","bar")
