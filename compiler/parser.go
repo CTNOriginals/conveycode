@@ -3,23 +3,30 @@ package compiler
 import (
 	constructors "conveycode/compiler/constructor"
 	"slices"
+	"strings"
 )
 
 // import "fmt"
 
 var variables []string
 
-func ParseSegments(segments [][]rune) string {
-	if string(segments[0]) == "var" {
-		if !slices.Contains(variables, string(segments[1])) {
-			variables = append(variables, string(segments[1]))
-		}
-		return constructors.Assignment(segments)
-	} else if slices.Contains(variables, string(segments[0])) {
-		return constructors.Assignment(segments)
+func ParseSegments(tokens [][]rune) string {
+	var parts []string
+
+	for _, seg := range tokens {
+		parts = append(parts, string(seg))
 	}
 
-	return "unknown"
+	if string(tokens[0]) == "var" {
+		if !slices.Contains(variables, string(tokens[1])) {
+			variables = append(variables, string(tokens[1]))
+		}
+		return constructors.Assignment(parts)
+	} else if slices.Contains(variables, parts[0]) {
+		return constructors.Assignment(parts)
+	}
+
+	return ("# ERROR: " + strings.Join(parts, ""))
 
 	// for _, seg := range segments {
 	// }

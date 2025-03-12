@@ -1,0 +1,4 @@
+set x "hello"
+set y "world"
+# ERROR: println(x,", ",y,"!")
+# ERROR: println(x", "y"!")

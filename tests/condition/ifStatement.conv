@@ -2,3 +2,11 @@ var x = 3
 var y = 5
 var z = x + y
 
+if z >= 10 {
+	print("z < 10 (" z ")")
+}
+else {
+	print("z >= 10 (" z ")")
+}
+
+flush("message1")

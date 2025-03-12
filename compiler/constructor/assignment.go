@@ -62,16 +62,10 @@ func constructOperation(parts []string) []string {
 // Construct a variable assignment line
 //
 // Pass in the parts of the line which has been split by spaces
-func Assignment(parts [][]rune) string {
-	var stringParts []string
-
-	for _, seg := range parts {
-		stringParts = append(stringParts, string(seg))
-	}
-
-	if utils.ContainsListItem(stringParts, operatorSymbols) {
-		return strings.Join(constructOperation(stringParts), " ")
+func Assignment(parts []string) string {
+	if utils.ContainsListItem(parts, operatorSymbols) {
+		return strings.Join(constructOperation(parts), " ")
 	} else {
-		return strings.Join(constructVariable(stringParts), " ")
+		return strings.Join(constructVariable(parts), " ")
 	}
 }
