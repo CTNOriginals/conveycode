@@ -31,6 +31,9 @@ const (
 	Parameter
 	Call
 	Argument
+
+	Comment
+
 	Other
 )
 
@@ -62,6 +65,8 @@ func (t TokenType) String() string {
 		return "Call"
 	case Argument:
 		return "Argument"
+	case Comment:
+		return "Comment"
 	case Other:
 		return "Other"
 	default:
@@ -130,8 +135,16 @@ func Tokenize(lines []string) [][]Token {
 				continue
 			}
 
-			if slices.Contains([]rune{'"', '\'', '`'}, char) && line[cursor-1] != '\\' {
-				c, token := tokenizeString(cursor, char, line)
+			if char == '/' && line[cursor+1] == '/' {
+				tokens = append(tokens, Token{
+					tokenType: Comment,
+					value:     string(line[cursor+2:]),
+				})
+				break
+			}
+
+			if slices.Contains([]rune{'"', '\'', '`'}, char) && line[utils.Max(0, cursor-1)] != '\\' {
+				c, token := tokenizeString(cursor, line)
 				cursor = c
 				tokens = append(tokens, token)
 				continue
@@ -208,20 +221,18 @@ func Tokenize(lines []string) [][]Token {
 	return tokenLines
 }
 
-func tokenizeString(cursor int, char rune, line []rune) (c int, token Token) {
-	var quote rune = char
-	var value []rune = []rune{quote}
+func tokenizeString(cursor int, line []rune) (c int, token Token) {
+	var quote rune = line[cursor]
+	var value []rune
 
 	cursor++
-	char = line[cursor]
 
-	for char != quote || line[cursor-1] == '\\' {
-		value = append(value, char)
+	for line[cursor] != quote || line[utils.Max(0, cursor-1)] == '\\' {
+		value = append(value, line[cursor])
 		cursor++
-		char = line[cursor]
 	}
 
-	value = append(value, char)
+	// value = append(value, char)
 	cursor++
 
 	return cursor, Token{

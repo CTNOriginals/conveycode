@@ -1,7 +1,11 @@
 print("Hello ")
 print("World\n")
 
+// This is a comment
 print(" \"Foo ")
+
+// var foo = bar
+// print("foobar")
 print("Bar\" ")
 
 print("foo", "bar")
