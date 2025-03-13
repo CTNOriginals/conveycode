@@ -130,11 +130,13 @@ func Tokenize(lines []string) [][]Token {
 		for cursor < len(line) {
 			var char rune = line[cursor]
 
+			//? Whitespace skip
 			if unicode.IsSpace(char) {
 				cursor++
 				continue
 			}
 
+			//? Comments
 			if char == '/' && line[cursor+1] == '/' {
 				tokens = append(tokens, Token{
 					tokenType: Comment,
@@ -143,6 +145,7 @@ func Tokenize(lines []string) [][]Token {
 				break
 			}
 
+			//? Strings
 			if slices.Contains([]rune{'"', '\'', '`'}, char) && line[utils.Max(0, cursor-1)] != '\\' {
 				c, token := tokenizeString(cursor, line)
 				cursor = c
@@ -150,8 +153,9 @@ func Tokenize(lines []string) [][]Token {
 				continue
 			}
 
+			//? Numbers
 			if unicode.IsDigit(char) {
-				c, token := tokenizeNumber(cursor, char, line)
+				c, token := tokenizeNumber(cursor, line)
 				cursor = c
 				tokens = append(tokens, token)
 				continue
@@ -232,7 +236,6 @@ func tokenizeString(cursor int, line []rune) (c int, token Token) {
 		cursor++
 	}
 
-	// value = append(value, char)
 	cursor++
 
 	return cursor, Token{
@@ -240,16 +243,15 @@ func tokenizeString(cursor int, line []rune) (c int, token Token) {
 		value:     string(value),
 	}
 }
-func tokenizeNumber(cursor int, char rune, line []rune) (c int, token Token) {
+func tokenizeNumber(cursor int, line []rune) (c int, token Token) {
 	var value []rune
 
-	for unicode.IsDigit(char) {
-		value = append(value, char)
+	for unicode.IsDigit(line[cursor]) {
+		value = append(value, line[cursor])
 		cursor++
 		if cursor >= len(line) {
 			break
 		}
-		char = line[cursor]
 	}
 
 	return cursor, Token{
