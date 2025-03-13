@@ -17,6 +17,7 @@ const (
 	String
 	Number
 
+	Assigner
 	Operator
 	Comparator
 	Seperator
@@ -43,6 +44,8 @@ func (t TokenType) String() string {
 		return "String"
 	case Number:
 		return "Number"
+	case Assigner:
+		return "Assigner"
 	case Comparator:
 		return "Comparator"
 	case Operator:
@@ -170,7 +173,7 @@ func Tokenize(lines []string) [][]Token {
 				if utils.ContainsListItem([]rune{'=', '>', '<', '!'}, []rune{line[cursor-1], line[cursor+1]}) {
 					singleTokenType = Comparator
 				} else {
-					singleTokenType = Operator
+					singleTokenType = Assigner
 				}
 			case '+', '-', '/', '*':
 				singleTokenType = Operator
