@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"bufio"
+	"conveycode/compiler/types"
 	"fmt"
 	"log"
 	"os"
@@ -32,7 +33,7 @@ func init() {
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
 
-	var instructions [][]Token = Tokenize(fileLines(sourceFilePath))
+	var instructions [][]types.Token = Tokenize(fileLines(sourceFilePath))
 	var instructionLines []string
 
 	for _, line := range instructions {

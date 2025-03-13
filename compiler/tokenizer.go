@@ -1,112 +1,13 @@
 package compiler
 
 import (
+	"conveycode/compiler/types"
 	"conveycode/compiler/utils"
-	"fmt"
 	"log"
 	"regexp"
 	"slices"
 	"unicode"
 )
-
-// #region Class Token
-type TokenType int
-
-const (
-	_ TokenType = iota
-	String
-	Number
-
-	Assigner
-	Operator
-	Comparator
-	Seperator
-
-	Bracket
-
-	Keyword
-	Variable
-	BuiltIn
-
-	Method
-	Parameter
-	Call
-	Argument
-
-	Comment
-
-	Other
-)
-
-func (t TokenType) String() string {
-	switch t {
-	case String:
-		return "String"
-	case Number:
-		return "Number"
-	case Assigner:
-		return "Assigner"
-	case Comparator:
-		return "Comparator"
-	case Operator:
-		return "Operator"
-	case Seperator:
-		return "Seperator"
-	case Bracket:
-		return "Bracket"
-	case Keyword:
-		return "Keyword"
-	case Variable:
-		return "Variable"
-	case BuiltIn:
-		return "BuiltIn"
-	case Method:
-		return "Method"
-	case Parameter:
-		return "Parameter"
-	case Call:
-		return "Call"
-	case Argument:
-		return "Argument"
-	case Comment:
-		return "Comment"
-	case Other:
-		return "Other"
-	default:
-		return "Unknown"
-	}
-}
-
-type Token struct {
-	tokenType TokenType
-	value     string
-}
-
-func (token Token) String() string {
-	return fmt.Sprintf("%s: %s", token.tokenType.String(), token.value)
-}
-
-//#endregion
-
-// #region Constents
-var keywords = []string{
-	"var",
-	"func",
-
-	"if",
-	"else",
-
-	"continue",
-	"break",
-	"return",
-}
-var builtIn = []string{
-	"print",
-	"println",
-	"flush",
-}
-
-//#endregion
 
 var regStream *regexp.Regexp
 
@@ -117,15 +18,15 @@ func init() {
 	}
 }
 
-func Tokenize(lines []string) [][]Token {
-	var tokenLines [][]Token
+func Tokenize(lines []string) [][]types.Token {
+	var tokenLines [][]types.Token
 	// var variables []string
 
 	for _, rawLine := range lines {
 		var line []rune = []rune(rawLine)
 
 		//? The tokens that are already identified in this line
-		var tokens []Token
+		var tokens []types.Token
 
 		//? The current index in the line
 		var cursor int = 0
@@ -141,9 +42,9 @@ func Tokenize(lines []string) [][]Token {
 
 			//? Comments
 			if char == '/' && line[cursor+1] == '/' {
-				tokens = append(tokens, Token{
-					tokenType: Comment,
-					value:     string(line[cursor+2:]),
+				tokens = append(tokens, types.Token{
+					TokenType: types.Comment,
+					Value:     string(line[cursor+2:]),
 				})
 				break
 			}
@@ -164,29 +65,29 @@ func Tokenize(lines []string) [][]Token {
 				continue
 			}
 
-			var singleTokenType TokenType = 0
+			var singleTokenType types.TokenType = 0
 
 			switch char {
 			case '(', ')', '[', ']', '{', '}':
-				singleTokenType = Bracket
+				singleTokenType = types.Bracket
 			case '=':
 				if utils.ContainsListItem([]rune{'=', '>', '<', '!'}, []rune{line[cursor-1], line[cursor+1]}) {
-					singleTokenType = Comparator
+					singleTokenType = types.Comparator
 				} else {
-					singleTokenType = Assigner
+					singleTokenType = types.Assigner
 				}
 			case '+', '-', '/', '*':
-				singleTokenType = Operator
+				singleTokenType = types.Operator
 			case '>', '<', '!', '&', '|':
-				singleTokenType = Comparator
+				singleTokenType = types.Comparator
 			case ',':
-				singleTokenType = Seperator
+				singleTokenType = types.Seperator
 			}
 
 			if singleTokenType != 0 {
-				tokens = append(tokens, Token{
-					tokenType: singleTokenType,
-					value:     string(char),
+				tokens = append(tokens, types.Token{
+					TokenType: singleTokenType,
+					Value:     string(char),
 				})
 				cursor++
 				continue
@@ -212,9 +113,9 @@ func Tokenize(lines []string) [][]Token {
 				continue
 			}
 
-			tokens = append(tokens, Token{
-				tokenType: identifyStream(stream),
-				value:     string(stream),
+			tokens = append(tokens, types.Token{
+				TokenType: identifyStream(stream),
+				Value:     string(stream),
 			})
 		}
 
@@ -228,7 +129,7 @@ func Tokenize(lines []string) [][]Token {
 	return tokenLines
 }
 
-func tokenizeString(cursor int, line []rune) (c int, token Token) {
+func tokenizeString(cursor int, line []rune) (c int, token types.Token) {
 	var quote rune = line[cursor]
 	var value []rune
 
@@ -241,12 +142,12 @@ func tokenizeString(cursor int, line []rune) (c int, token Token) {
 
 	cursor++
 
-	return cursor, Token{
-		tokenType: String,
-		value:     string(value),
+	return cursor, types.Token{
+		TokenType: types.String,
+		Value:     string(value),
 	}
 }
-func tokenizeNumber(cursor int, line []rune) (c int, token Token) {
+func tokenizeNumber(cursor int, line []rune) (c int, token types.Token) {
 	var value []rune
 
 	for unicode.IsDigit(line[cursor]) {
@@ -257,18 +158,18 @@ func tokenizeNumber(cursor int, line []rune) (c int, token Token) {
 		}
 	}
 
-	return cursor, Token{
-		tokenType: Number,
-		value:     string(value),
+	return cursor, types.Token{
+		TokenType: types.Number,
+		Value:     string(value),
 	}
 }
 
-func identifyStream(stream []rune) TokenType {
-	if slices.Contains(keywords, string(stream)) {
-		return Keyword
-	} else if slices.Contains(builtIn, string(stream)) {
-		return BuiltIn
+func identifyStream(stream []rune) types.TokenType {
+	if slices.Contains(types.Keywords, string(stream)) {
+		return types.Keyword
+	} else if slices.Contains(types.BuiltIns, string(stream)) {
+		return types.BuiltIn
 	} else {
-		return Other
+		return types.Other
 	}
 }
