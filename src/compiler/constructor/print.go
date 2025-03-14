@@ -1,4 +1,4 @@
-package constructors
+package constructor
 
 func Printer(parts []string) {
 

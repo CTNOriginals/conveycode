@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	constructors "conveycode/compiler/constructor"
+	"conveycode/src/compiler/constructor"
 	"slices"
 	"strings"
 )
@@ -21,9 +21,9 @@ func ParseSegments(tokens []string) string {
 		if !slices.Contains(variables, string(tokens[1])) {
 			variables = append(variables, string(tokens[1]))
 		}
-		return constructors.Assignment(parts)
+		return constructor.Assignment(parts)
 	} else if slices.Contains(variables, parts[0]) {
-		return constructors.Assignment(parts)
+		return constructor.Assignment(parts)
 	}
 
 	return ("# ERROR: " + strings.Join(parts, ""))

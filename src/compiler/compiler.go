@@ -1,8 +1,8 @@
 package compiler
 
 import (
-	"conveycode/compiler/types"
-	"conveycode/compiler/utils"
+	"conveycode/src/compiler/types"
+	"conveycode/src/compiler/utils"
 	"fmt"
 	"regexp"
 
