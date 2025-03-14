@@ -24,6 +24,9 @@ const (
 	Comment
 
 	Other
+
+	EOL
+	EOF
 )
 
 func (e TokenType) String() string {
@@ -45,6 +48,9 @@ func (e TokenType) String() string {
 		"Comment",
 
 		"Other",
+
+		"EOL",
+		"EOF",
 	}[e-1]
 }
 
