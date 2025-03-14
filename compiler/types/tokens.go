@@ -26,35 +26,26 @@ const (
 	Other
 )
 
-func (t TokenType) String() string {
-	switch t {
-	case String:
-		return "String"
-	case Number:
-		return "Number"
-	case Assigner:
-		return "Assigner"
-	case Comparator:
-		return "Comparator"
-	case Operator:
-		return "Operator"
-	case Seperator:
-		return "Seperator"
-	case Bracket:
-		return "Bracket"
-	case Keyword:
-		return "Keyword"
-	case Variable:
-		return "Variable"
-	case BuiltIn:
-		return "BuiltIn"
-	case Comment:
-		return "Comment"
-	case Other:
-		return "Other"
-	default:
-		return "Unknown"
-	}
+func (e TokenType) String() string {
+	return [...]string{
+		"String",
+		"Number",
+
+		"Assigner",
+		"Operator",
+		"Comparator",
+
+		"Bracket",
+		"Seperator",
+
+		"Keyword",
+		"Variable",
+		"BuiltIn",
+
+		"Comment",
+
+		"Other",
+	}[e-1]
 }
 
 type Token struct {
