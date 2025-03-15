@@ -41,20 +41,18 @@ func GetFileLines(filePath string) []string {
 }
 
 func GetFileRunes(filePath string) []rune {
-	file := getFile(filePath)
-	defer file.Close()
-
-	fileScanner := bufio.NewScanner(file)
-	fileScanner.Split(bufio.ScanRunes)
-
-	var runes []rune
-
-	for fileScanner.Scan() {
-		tokens := fileScanner.Bytes()
-		runes = append(runes, rune(tokens[0]))
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		panic(err)
 	}
 
-	return runes
+	ret := make([]rune, len(b))
+
+	for i, r := range b {
+		ret[i] = rune(r)
+	}
+
+	return ret
 }
 
 func WriteFile(fileName string, destPath string, lines []string) {
@@ -87,19 +85,3 @@ func getFile(filePath string) *os.File {
 	}
 	return readFile
 }
-
-// func getFileContent[T bufio.SplitFunc, R []string | []rune | []byte](filePath string, scanType T) R {
-// 	file := getFile(filePath)
-// 	defer file.Close()
-
-// 	fileScanner := bufio.NewScanner(file)
-// 	fileScanner.Split(scanType)
-
-// 	var content []R
-
-// 	for fileScanner.Scan() {
-// 		content = append(content, fileScanner.Text())
-// 	}
-
-// 	return content
-// }
