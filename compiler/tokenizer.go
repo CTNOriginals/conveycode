@@ -1,8 +1,8 @@
 package compiler
 
 import (
-	"conveycode/src/compiler/types"
-	"conveycode/src/compiler/utils"
+	"conveycode/compiler/types"
+	"conveycode/compiler/utils"
 	"log"
 	"regexp"
 	"slices"
@@ -27,6 +27,8 @@ func Tokenize(content []rune) []types.Token {
 
 	for cursor < len(content) {
 		var char rune = content[cursor]
+
+		//? EOL
 
 		//? Whitespace skip
 		if unicode.IsSpace(char) {

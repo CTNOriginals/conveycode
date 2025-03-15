@@ -1,7 +1,7 @@
 package constructor
 
 import (
-	"conveycode/src/compiler/utils"
+	"conveycode/compiler/utils"
 	"slices"
 	"strings"
 )
