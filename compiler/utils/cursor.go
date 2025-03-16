@@ -5,11 +5,12 @@ import (
 	"io"
 )
 
-func RunTests(content []rune) {
+func CursorTests(content []rune) {
 	var cursor = NewCursor(content)
 
 	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.Peak(0)))
-	cursor.Seek(11)
+	cursor.Seek(41)
+	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.Peak(0)))
 	fmt.Printf("%d: '%s'\n", cursor.Pos-1, string(cursor.Read()))
 	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.PeakRange(-2, 3)))
 	fmt.Println(cursor)
@@ -22,7 +23,7 @@ type Cursor struct {
 	// The position of the cursor relative to the full content
 	Pos int
 
-	//
+	// The line the cursor is currently on
 	Line int
 }
 
@@ -100,15 +101,10 @@ func (this *Cursor) PeakRange(start int, end int) []rune {
 }
 
 // Consume the current character and return it
-func (this *Cursor) Read() rune {
-	var char = this.Peak(0)
-
-	if char == '\n' {
-		this.Line++
-	}
-
-	this.Pos++
-	return char
+func (this *Cursor) Read() (char rune) {
+	char = this.Peak(0)
+	this.Seek(1)
+	return
 }
 
 // Seek the cursors position relative to its current position.

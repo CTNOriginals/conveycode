@@ -28,7 +28,7 @@ func init() {
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
 
-	utils.RunTests(utils.GetFileRunes(sourceFilePath))
+	utils.CursorTests(utils.GetFileRunes(sourceFilePath))
 
 	// var instructions []types.Token = Tokenize(utils.GetFileRunes(sourceFilePath))
 	// var instructionLines []string
