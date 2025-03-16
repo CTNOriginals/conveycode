@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"conveycode/compiler/tools"
 	"conveycode/compiler/utils"
 	"fmt"
 	"regexp"
@@ -28,7 +29,7 @@ func init() {
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
 
-	utils.CursorTests(utils.GetFileRunes(sourceFilePath))
+	tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
 	// var instructions []types.Token = Tokenize(utils.GetFileRunes(sourceFilePath))
 	// var instructionLines []string

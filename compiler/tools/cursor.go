@@ -1,6 +1,7 @@
-package utils
+package tools
 
 import (
+	"conveycode/compiler/utils"
 	"fmt"
 	"io"
 )
@@ -31,7 +32,7 @@ func NewCursor(content []rune) *Cursor {
 	for i, c := range content {
 		if c == '\r' && content[i+1] == '\n' {
 			content[i] = '\n'
-			content, _ = Splice(content, i, 1)
+			content, _ = utils.Splice(content, i, 1)
 		}
 	}
 
@@ -116,8 +117,8 @@ func (this *Cursor) Seek(offset int) bool {
 		return false
 	}
 
-	absOffset, signed := Abs(offset)
-	direction := If(signed, -1, 1)
+	absOffset, signed := utils.Abs(offset)
+	direction := utils.If(signed, -1, 1)
 
 	for range absOffset {
 		if this.content[this.Pos] == '\n' {
