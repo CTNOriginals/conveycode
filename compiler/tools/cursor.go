@@ -1,111 +1,62 @@
 package tools
 
 import (
+	"conveycode/compiler/types"
 	"conveycode/compiler/utils"
 	"fmt"
 	"io"
+	"slices"
 )
 
 func CursorTests(content []rune) {
 	var cursor = NewCursor(content)
 
-	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.Peak(0)))
-	cursor.Seek(41)
-	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.Peak(0)))
-	fmt.Printf("%d: '%s'\n", cursor.Pos-1, string(cursor.Read()))
-	fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.PeakRange(-2, 3)))
+	fmt.Println(len(cursor.Content))
+
+	// fmt.Printf("%d: '%s'\n", cursor.Pos, string(cursor.Peek()))
+	// cursor.Seek(39)
+	// fmt.Printf("%d/%d: '%s'\n", cursor.Pos-12, cursor.Pos, string(cursor.ReadN(12)))
+	// fmt.Printf("%d: '%v'\n", cursor.Pos-1, cursor.Read())
+	// fmt.Printf("%d: '%v'\n", cursor.Pos-1, cursor.Read())
+
+	// cursor.Pos = 0
+	cursor.Seek(115)
+	fmt.Printf("%d/%d: '%s'\n", cursor.Pos-20, cursor.Pos, string(cursor.ReadN(20)))
+
 	fmt.Println(cursor)
 }
 
 type Cursor struct {
-	// The content that the cursor is running though
-	content []rune
+	// The Content that the cursor is running though
+	Content []rune
 
 	// The position of the cursor relative to the full content
 	Pos int
 
 	// The line the cursor is currently on
 	Line int
+
+	// Wether the end of the file has been reached
+	//
+	// Used by Cursor.Read() to know when to return EOT.
+	// Set to true by Cursor.Read() once Cursor.Consume() returns false.
+	// Set to false once Cursor.Seek() is used with a negative number.
+	EOF bool
 }
 
 func NewCursor(content []rune) *Cursor {
-	for i, c := range content {
-		if c == '\r' && content[i+1] == '\n' {
-			content[i] = '\n'
-			content, _ = utils.Splice(content, i, 1)
-		}
-	}
+	content = slices.DeleteFunc(content, func(e rune) bool { return e == '\r' })
 
 	return &Cursor{
-		content: content,
+		Content: content,
 		Pos:     0,
 		Line:    1,
+		EOF:     false,
 	}
 }
 
 func (this *Cursor) String() string {
-	return fmt.Sprintf("Content Length: %d\nPosition: %d\nLine: %d", len(this.content), this.Pos, this.Line)
-}
-
-func (this *Cursor) validateOffset(offset ...int) error {
-	for i := range offset {
-		var index = this.Pos + offset[i]
-		// fmt.Println(offset[i], index)
-
-		if index < 0 || index >= len(this.content) {
-			return io.EOF
-		}
-	}
-
-	return nil
-}
-
-func (this *Cursor) throw(err error) {
-	fmt.Println(err.Error())
-}
-
-// Gets the character at the relative offset of the current cursor position and returns it
-//
-// If the offset is out of range, either the first or the last character is returned instead
-// depending on if the offset was positive or negative
-func (this *Cursor) Peak(offset int) rune {
-	if err := this.validateOffset(offset); err != nil {
-		this.throw(err)
-
-		index := this.Pos
-
-		if offset > this.Pos {
-			index = len(this.content) - 1
-		} else if offset < this.Pos {
-			index = 0
-		}
-
-		return this.content[index]
-	}
-
-	return this.content[this.Pos+offset]
-}
-
-// Get all characters within the range of the start and end index relative to the current cursor position
-func (this *Cursor) PeakRange(start int, end int) []rune {
-	if err := this.validateOffset(start); err != nil {
-		this.throw(err)
-		start = this.Pos
-	}
-
-	if err := this.validateOffset(end); err != nil {
-		this.throw(err)
-		end = this.Pos
-	}
-
-	return this.content[(this.Pos + start):(this.Pos + end)]
-}
-
-// Consume the current character and return it
-func (this *Cursor) Read() (char rune) {
-	char = this.Peak(0)
-	this.Seek(1)
-	return
+	return fmt.Sprintf("Content Length: %d\nPosition: %d\nLine: %d\nEOF: %t", len(this.Content), this.Pos, this.Line, this.EOF)
 }
 
 // Seek the cursors position relative to its current position.
@@ -120,8 +71,12 @@ func (this *Cursor) Seek(offset int) bool {
 	absOffset, signed := utils.Abs(offset)
 	direction := utils.If(signed, -1, 1)
 
+	if this.EOF && signed {
+		this.EOF = false
+	}
+
 	for range absOffset {
-		if this.content[this.Pos] == '\n' {
+		if this.Content[this.Pos] == '\n' {
 			this.Line += direction
 		}
 
@@ -130,3 +85,66 @@ func (this *Cursor) Seek(offset int) bool {
 
 	return true
 }
+
+// Consumes the current character and seeks next
+func (this *Cursor) Consume() bool {
+	return this.Seek(1)
+}
+
+// Peek at an offset relative to the cursors current position
+func (this *Cursor) PeekOffset(offset int) rune {
+	if err := this.validateOffset(offset); err != nil {
+		return types.EOT
+	}
+
+	return this.Content[this.Pos+offset]
+}
+
+// Gets the character at the relative offset of the current cursor position and returns it
+func (this *Cursor) Peek() rune {
+	return this.PeekOffset(0)
+}
+
+// Returns the current character and consumes it
+func (this *Cursor) Read() (char rune) {
+	if this.EOF {
+		return types.EOT
+	}
+
+	char = this.Peek()
+
+	if !this.Consume() {
+		this.EOF = true
+	}
+
+	return
+}
+
+// Read n of characters from the current cursor position and returns all of them
+func (this *Cursor) ReadN(n int) (list []rune) {
+	for range n {
+		list = append(list, this.Read())
+	}
+	return
+}
+
+//#region Private
+
+func (this *Cursor) validateOffset(offset ...int) error {
+	for i := range offset {
+		var index = this.Pos + offset[i]
+
+		if index < 0 || index >= len(this.Content) {
+			// fmt.Printf("%d: Offset out of range (pos: %d + off: %d[%d] = %d)\n", this.Pos, this.Pos, offset[i], i, index)
+			return io.EOF
+		}
+	}
+
+	return nil
+}
+
+func (this *Cursor) throw(err error) {
+	fmt.Println(err.Error())
+}
+
+//#endregion

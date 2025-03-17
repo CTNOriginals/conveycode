@@ -1,18 +1,18 @@
 package utils
 
-func Splice[T comparable](s []T, start int, count int) (ret []T, del []T) {
-	ret = make([]T, len(s)-count)
-	del = make([]T, count)
+func Splice[T comparable](slice []T, start int, count int) (remaining []T, deleted []T) {
+	remaining = make([]T, len(slice)-count)
+	deleted = make([]T, count)
 
 	deleteCount := 0
-	for i, item := range s {
+	for i, item := range slice {
 		if i >= start && i < (start+count) {
-			del[deleteCount] = item
+			deleted[deleteCount] = item
 			deleteCount++
 			continue
 		}
 
-		ret[i-deleteCount] = item
+		remaining[i-deleteCount] = item
 	}
 
 	return
