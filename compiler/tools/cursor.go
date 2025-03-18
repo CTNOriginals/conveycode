@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"unicode"
 )
 
 func CursorTests(content []rune) {
@@ -28,10 +27,13 @@ func CursorTests(content []rune) {
 	// cursor.Seek(1) // Go past the first quote
 	// fmt.Println(string(cursor.ReadUntil('"')))
 
-	cursor.Seek(18)
-	fmt.Println(string(cursor.ReadUntilFunc(func(c rune) bool {
-		return !unicode.IsDigit(c)
-	})))
+	// cursor.Seek(18)
+	// fmt.Println(string(cursor.ReadUntilFunc(func(c rune) bool {
+	// 	return !unicode.IsDigit(c)
+	// })))
+
+	// cursor.Seek(24)
+	// fmt.Println(string(cursor.Peek()), cursor.getColumn())
 
 	fmt.Println(cursor)
 }
@@ -45,6 +47,9 @@ type Cursor struct {
 
 	// The line the cursor is currently on
 	Line int
+
+	// The column number the cursor is currently on
+	Column int
 
 	// Wether the end of the file has been reached
 	//
@@ -87,10 +92,13 @@ func (this *Cursor) Seek(offset int) bool {
 	for range absOffset {
 		if this.Content[this.Pos] == '\n' {
 			this.Line += direction
+
 		}
 
 		this.Pos += direction
 	}
+
+	this.Column = this.getColumn()
 
 	return true
 }
@@ -172,6 +180,18 @@ func (this *Cursor) validateOffset(offset ...int) error {
 	}
 
 	return nil
+}
+
+func (this *Cursor) getColumn() (col int) {
+	col = 0
+	char := this.Content[this.Pos] //? Cant use seek because seek calls this
+
+	for char != 10 && (this.Pos-(col+1)) > 0 { //? line feed
+		col++
+		char = this.Content[this.Pos-col]
+	}
+
+	return col
 }
 
 // func (this *Cursor) throw(err error) {

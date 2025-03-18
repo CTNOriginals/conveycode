@@ -18,14 +18,14 @@ const (
 
 	Assigner
 	Operator
-	Comparator
 
 	Bracket
 	Seperator
 
-	Keyword
-	Variable
-	BuiltIn
+	// Keyword
+	// BuiltIn
+
+	Scope
 
 	Comment
 
@@ -35,21 +35,21 @@ const (
 	EOF
 )
 
-func (e TokenType) String() string {
+func (this TokenType) String() string {
 	return [...]string{
 		"String",
 		"Number",
 
 		"Assigner",
 		"Operator",
-		"Comparator",
 
 		"Bracket",
 		"Seperator",
 
-		"Keyword",
-		"Variable",
-		"BuiltIn",
+		// "Keyword",
+		// "BuiltIn",
+
+		"Scope",
 
 		"Comment",
 
@@ -57,7 +57,7 @@ func (e TokenType) String() string {
 
 		"EOL",
 		"EOF",
-	}[e-1]
+	}[this-1]
 }
 
 //#region Token

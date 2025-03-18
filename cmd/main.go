@@ -1,12 +1,11 @@
 package main
 
 import (
+	"conveycode/compiler"
 	"fmt"
 	"time"
 
 	"github.com/TwiN/go-color"
-
-	"conveycode/compiler"
 )
 
 var testCases [][]string = [][]string{
