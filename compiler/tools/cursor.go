@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"unicode"
 )
 
 func CursorTests(content []rune) {
@@ -20,8 +21,17 @@ func CursorTests(content []rune) {
 	// fmt.Printf("%d: '%v'\n", cursor.Pos-1, cursor.Read())
 
 	// cursor.Pos = 0
-	cursor.Seek(115)
-	fmt.Printf("%d/%d: '%s'\n", cursor.Pos-20, cursor.Pos, string(cursor.ReadN(20)))
+	// cursor.Seek(115)
+	// fmt.Printf("%d/%d: '%s'\n", cursor.Pos-20, cursor.Pos, string(cursor.ReadN(20)))
+
+	// cursor.Seek(55)
+	// cursor.Seek(1) // Go past the first quote
+	// fmt.Println(string(cursor.ReadUntil('"')))
+
+	cursor.Seek(18)
+	fmt.Println(string(cursor.ReadUntilFunc(func(c rune) bool {
+		return !unicode.IsDigit(c)
+	})))
 
 	fmt.Println(cursor)
 }
@@ -64,7 +74,6 @@ func (this *Cursor) String() string {
 // If the offset is out of range, the cursors position will remain the same and the function returns false
 func (this *Cursor) Seek(offset int) bool {
 	if err := this.validateOffset(offset); err != nil {
-		this.throw(err)
 		return false
 	}
 
@@ -100,9 +109,19 @@ func (this *Cursor) PeekOffset(offset int) rune {
 	return this.Content[this.Pos+offset]
 }
 
-// Gets the character at the relative offset of the current cursor position and returns it
+// Returns the character at the current position of the cursor
 func (this *Cursor) Peek() rune {
 	return this.PeekOffset(0)
+}
+
+// Returns the character at the position ahead of the cursor
+func (this *Cursor) PeekNext() rune {
+	return this.PeekOffset(1)
+}
+
+// Returns the character at the position ahead of the cursor
+func (this *Cursor) PeekPrev() rune {
+	return this.PeekOffset(-1)
 }
 
 // Returns the current character and consumes it
@@ -128,6 +147,18 @@ func (this *Cursor) ReadN(n int) (list []rune) {
 	return
 }
 
+// Reads until f(c) returns true or the EOF is reached
+func (this *Cursor) ReadUntilFunc(f func(c rune) bool) (list []rune) {
+	var char = this.Read()
+
+	for !f(char) && !this.EOF {
+		list = append(list, char)
+		char = this.Read()
+	}
+
+	return
+}
+
 //#region Private
 
 func (this *Cursor) validateOffset(offset ...int) error {
@@ -143,8 +174,8 @@ func (this *Cursor) validateOffset(offset ...int) error {
 	return nil
 }
 
-func (this *Cursor) throw(err error) {
-	fmt.Println(err.Error())
-}
+// func (this *Cursor) throw(err error) {
+// 	fmt.Println(err.Error())
+// }
 
 //#endregion
