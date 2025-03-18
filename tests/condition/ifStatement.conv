@@ -2,8 +2,16 @@ var x = 3
 var y = 52454
 var z = x + y
 
-if z >= 10 {
+if (z >= 10) {
 	print("z < 10 (", z, ")")
+	if (x < 3) {
+		if (true) {
+			print("Hello World")
+		}
+		print(x, "less then 3")
+	} else {
+		print(x, "more then 3")
+	}
 }
 else {
 	print("z >= 10 (", z, ")")

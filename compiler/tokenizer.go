@@ -68,8 +68,6 @@ func Tokenize(content []rune) types.TokenList {
 			}
 
 			tokens.Push(types.String, string(stream))
-
-			// cursor.Read() //? This skips the closing quote charactr
 			continue
 		}
 
@@ -80,6 +78,33 @@ func Tokenize(content []rune) types.TokenList {
 			})))
 
 			cursor.Seek(-1) //? the stream had to jump over the next character, so we bring it back here to not skip it
+			continue
+		}
+
+		//? Scope
+		if slices.Contains([]rune{'(', '[', '{'}, cursor.Peek()) {
+			var openBracket = cursor.Peek()
+			var closeBracket = getMatchingBracket(openBracket)
+			var depth = 0
+
+			cursor.Seek(1) //? Go past the opening bracket
+
+			var body = cursor.ReadUntilFunc(func(c rune) bool {
+				if c == closeBracket {
+					if depth == 0 {
+						return true
+					} else {
+						depth--
+					}
+				} else if c == openBracket {
+					depth++
+				}
+
+				return false
+			})
+
+			tokens.Push(types.Scope, string(body))
+			cursor.Seek(1) //? Go past the closing bracket
 			continue
 		}
 
@@ -123,12 +148,25 @@ func Tokenize(content []rune) types.TokenList {
 	return tokens
 }
 
-// func identifyStream(stream []rune) types.TokenType {
-// 	if slices.Contains(types.Keywords, string(stream)) {
-// 		return types.Keyword
-// 	} else if slices.Contains(types.BuiltIns, string(stream)) {
-// 		return types.BuiltIn
-// 	} else {
-// 		return types.Other
-// 	}
-// }
+func getMatchingBracket(bracket rune) rune {
+	switch bracket {
+	case '(':
+		return ')'
+	case ')':
+		return '('
+
+	case '[':
+		return ']'
+	case ']':
+		return '['
+
+	case '{':
+		return '}'
+	case '}':
+		return '{'
+
+	default:
+		fmt.Printf("Unexpected character \"%s\", no matching bracked", string(bracket))
+		return 0
+	}
+}
