@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"conveycode/compiler/tools"
+	"conveycode/compiler/types"
 	"conveycode/compiler/utils"
 	"fmt"
 	"regexp"
@@ -27,19 +27,17 @@ func init() {
 //
 //	compiler.CompileFile("foo/bar/file.conv", "dest/")
 func CompileFile(sourceFilePath string, dest string) {
-	fmt.Printf("File %s\n", color.InGreen(sourceFilePath))
+	fmt.Printf("File %s\n", color.InYellow(sourceFilePath))
 
-	tools.CursorTests(utils.GetFileRunes(sourceFilePath))
+	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
-	// var instructions []types.Token = Tokenize(utils.GetFileRunes(sourceFilePath))
-	// var instructionLines []string
+	var instructions types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
+	var instructionLines []string
 
-	// for _, content := range instructions {
-	// 	//? Debug Logging
-	// 	fmt.Println("")
-	// 	fmt.Printf("%s", content)
-	// 	// instructionLines = append(instructionLines, ParseSegments(line))
-	// }
+	for _, content := range instructions.Tokens {
+		//? Debug Logging
+		fmt.Printf("\n%s", content)
+	}
 
-	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
+	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

@@ -1,9 +1,8 @@
 package compiler
 
 import (
+	"conveycode/compiler/tools"
 	"conveycode/compiler/types"
-	"conveycode/compiler/utils"
-	"log"
 	"regexp"
 	"slices"
 	"unicode"
@@ -18,140 +17,114 @@ func init() {
 	}
 }
 
-func Tokenize(content []rune) []types.Token {
+func Tokenize(content []rune) types.TokenList {
 	//? The tokens that are already identified in this line
-	var tokens []types.Token
+	var tokens types.TokenList = types.NewTokenList()
 
 	//? The current index in the line
-	var cursor int = 0
+	var cursor = tools.NewCursor(content)
+	// fmt.Println(cursor.Content)
 
-	for cursor < len(content) {
-		var char rune = content[cursor]
-
+	for !cursor.EOF {
 		//? EOL
+		if cursor.Peek() == 10 {
+			tokens.Push(types.EOL, "")
+			cursor.Read()
+			continue
+		}
 
 		//? Whitespace skip
-		if unicode.IsSpace(char) {
-			cursor++
+		if unicode.IsSpace(cursor.Peek()) {
+			cursor.Read()
 			continue
 		}
 
-		//? Comments
-		if char == '/' && content[cursor+1] == '/' {
-			tokens = append(tokens, types.Token{
-				TokenType: types.Comment,
-				Value:     string(content[cursor+2:]),
-			})
-			break
-		}
+		//? Comment
+		if cursor.Peek() == '/' && cursor.PeekNext() == '/' {
+			cursor.Seek(2) //? Move the cursor past the //
+			tokens.Push(types.Comment, string(cursor.ReadUntilFunc(func(c rune) bool {
+				return c == '\n'
+			})))
 
-		//? Strings
-		if slices.Contains([]rune{'"', '\'', '`'}, char) && content[utils.Max(0, cursor-1)] != '\\' {
-			c, token := tokenizeString(cursor, content)
-			cursor = c
-			tokens = append(tokens, token)
 			continue
 		}
 
-		//? Numbers
-		if unicode.IsDigit(char) {
-			c, token := tokenizeNumber(cursor, content)
-			cursor = c
-			tokens = append(tokens, token)
-			continue
-		}
+		//? String
+		if slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\' {
+			var quote = cursor.Read()
+			var stream []rune
 
-		var singleTokenType types.TokenType = 0
+			for true {
+				s := cursor.ReadUntilFunc(func(c rune) bool {
+					return c == quote
+				})
 
-		switch char {
-		case '(', ')', '[', ']', '{', '}':
-			singleTokenType = types.Bracket
-		case '=':
-			if utils.ContainsListItem([]rune{'=', '>', '<', '!'}, []rune{content[cursor-1], content[cursor+1]}) {
-				singleTokenType = types.Comparator
-			} else {
-				singleTokenType = types.Assigner
+				stream = append(stream, s...)
+				if stream[len(stream)-1] == '\\' {
+					stream = append(stream, quote)
+				} else {
+					break
+				}
 			}
-		case '+', '-', '/', '*':
-			singleTokenType = types.Operator
-		case '>', '<', '!', '&', '|':
-			singleTokenType = types.Comparator
-		case ',':
-			singleTokenType = types.Seperator
-		}
 
-		if singleTokenType != 0 {
-			tokens = append(tokens, types.Token{
-				TokenType: singleTokenType,
-				Value:     string(char),
-			})
-			cursor++
+			tokens.Push(types.String, string(stream))
+
+			cursor.Read() //? This skips the closing quote charactr
 			continue
 		}
 
-		//? Nothing was found to match at this point
-		//? All the following characters will be put in a stream until the next character is anything that can make its own token again
+		//? Number
+		if unicode.IsDigit(cursor.Peek()) {
+			tokens.Push(types.Number, string(cursor.ReadUntilFunc(func(c rune) bool {
+				return !unicode.IsDigit(c)
+			})))
 
-		var stream []rune
-
-		for regStream.Match([]byte{byte(char)}) {
-			stream = append(stream, char)
-			cursor++
-			if cursor >= len(content) {
-				break
-			}
-			char = content[cursor]
-		}
-
-		if stream == nil {
-			log.Panicf("Unknown character: %s", string(char))
-			cursor++
 			continue
 		}
 
-		tokens = append(tokens, types.Token{
-			TokenType: identifyStream(stream),
-			Value:     string(stream),
-		})
+		cursor.Read()
+		continue
 	}
+
+	tokens.Push(types.EOF, "")
 
 	return tokens
 }
 
-func tokenizeString(cursor int, line []rune) (c int, token types.Token) {
-	var quote rune = line[cursor]
-	var value []rune
+// func tokenizeString(cursor *tools.Cursor) (c int, token types.Token) {
+// 	var quote rune = cursor.Peak(0)
+// 	var value []rune
 
-	cursor++
+// 	cursor++
 
-	for line[cursor] != quote || line[utils.Max(0, cursor-1)] == '\\' {
-		value = append(value, line[cursor])
-		cursor++
-	}
+// 	for line[cursor] != quote || line[utils.Max(0, cursor-1)] == '\\' {
+// 		value = append(value, line[cursor])
+// 		cursor++
+// 	}
 
-	cursor++
+// 	cursor++
 
-	return cursor, types.Token{
-		TokenType: types.String,
-		Value:     string(value),
-	}
-}
-func tokenizeNumber(cursor int, line []rune) (c int, token types.Token) {
-	var value []rune
+// 	return cursor, types.Token{
+// 		TokenType: types.String,
+// 		Value:     string(value),
+// 	}
+// }
+// func tokenizeNumber(cursor int, line []rune) (c int, token types.Token) {
+// 	var value []rune
 
-	for unicode.IsDigit(line[cursor]) {
-		value = append(value, line[cursor])
-		cursor++
-		if cursor >= len(line) {
-			break
-		}
-	}
+// 	for unicode.IsDigit(line[cursor]) {
+// 		value = append(value, line[cursor])
+// 		cursor++
+// 		if cursor >= len(line) {
+// 			break
+// 		}
+// 	}
 
-	return cursor, types.Token{
-		TokenType: types.Number,
-		Value:     string(value),
-	}
-}
+// 	return cursor, types.Token{
+// 		TokenType: types.Number,
+// 		Value:     string(value),
+// 	}
+// }
 
 func identifyStream(stream []rune) types.TokenType {
 	if slices.Contains(types.Keywords, string(stream)) {

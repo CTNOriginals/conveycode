@@ -1,5 +1,5 @@
 var x = 3
-var y = 5
+var y = 52454
 var z = x + y
 
 if z >= 10 {
