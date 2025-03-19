@@ -114,7 +114,9 @@ func Tokenize(content []rune) types.TokenList {
 			})
 
 			tokens.Push(types.Scope, body...)
-			cursor.Seek(1) //? Go past the closing bracket
+			if !cursor.Seek(1) { //? Go past the closing bracket
+				break //? EOF is past the character we are trying to skip, so break early
+			}
 			continue
 		}
 

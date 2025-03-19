@@ -145,11 +145,8 @@ func (this *Cursor) ReadN(n int) (list []rune) {
 
 // Reads until f(c) returns true or the EOF is reached
 func (this *Cursor) ReadUntilFunc(f func(c rune) bool) (list []rune) {
-	var char = this.Read()
-
-	for !f(char) && !this.EOF {
-		list = append(list, char)
-		char = this.Read()
+	for !f(this.Peek()) && !this.EOF {
+		list = append(list, this.Read())
 	}
 
 	return
