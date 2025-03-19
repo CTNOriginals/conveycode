@@ -13,50 +13,55 @@ import (
 
 var regStream *regexp.Regexp
 
-func init() {
-	var err error
-	if regStream, err = regexp.Compile("\\w"); err != nil {
-		panic(err)
-	}
+// #region Handlers
+type handler struct {
+	test   func(cursor *tools.Cursor) bool
+	handle func(cursor *tools.Cursor) (v []rune)
 }
 
-func Tokenize(content []rune) types.TokenList {
-	//? The tokens that are already identified in this line
-	var tokens types.TokenList = types.NewTokenList()
+type handlerMap = map[types.TokenType]handler
 
-	//? The current index in the line
-	var cursor = tools.NewCursor(content)
-
-	for !cursor.EOF {
-		//? EOL
-		if cursor.Peek() == '\n' {
-			tokens.Push(types.EOL, 0)
+var handlers = handlerMap{
+	0: {
+		test: func(cursor *tools.Cursor) bool {
+			return unicode.IsSpace(cursor.Peek()) && cursor.Peek() != '\n'
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
+			v = nil
 			cursor.Read()
-			continue
-		}
-
-		//? Whitespace skip
-		if unicode.IsSpace(cursor.Peek()) {
+			return
+		},
+	},
+	types.EOL: {
+		test: func(cursor *tools.Cursor) bool {
+			return cursor.Peek() == '\n'
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
+			v = []rune{0}
 			cursor.Read()
-			continue
-		}
-
-		//? Comment
-		if cursor.Peek() == '/' && cursor.PeekNext() == '/' {
+			return
+		},
+	},
+	types.Comment: {
+		test: func(cursor *tools.Cursor) bool {
+			return cursor.Peek() == '/' && cursor.PeekNext() == '/'
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
 			cursor.Seek(2) //? Move the cursor past the //
-			tokens.Push(types.Comment, cursor.ReadUntilFunc(func(c rune) bool {
+			return cursor.ReadUntilFunc(func(c rune) bool {
 				return c == '\n'
-			})...)
-
-			continue
-		}
-
-		//? String
-		if slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\' {
+			})
+		},
+	},
+	types.String: {
+		test: func(cursor *tools.Cursor) bool {
+			return slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\'
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
 			var quote = cursor.Read()
 			var stream []rune
 
-			for true {
+			for {
 				s := cursor.ReadUntilFunc(func(c rune) bool {
 					return c == quote
 				})
@@ -69,21 +74,25 @@ func Tokenize(content []rune) types.TokenList {
 				}
 			}
 
-			tokens.Push(types.String, stream...)
-			continue
-		}
-
-		//? Number
-		if unicode.IsDigit(cursor.Peek()) {
-			tokens.Push(types.Number, cursor.ReadUntilFunc(func(c rune) bool {
+			cursor.Seek(1) //? Skip the closing quote
+			return stream
+		},
+	},
+	types.Number: {
+		test: func(cursor *tools.Cursor) bool {
+			return unicode.IsDigit(cursor.Peek())
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
+			return cursor.ReadUntilFunc(func(c rune) bool {
 				return !unicode.IsDigit(c)
-			})...)
-
-			continue
-		}
-
-		//? Scope
-		if slices.Contains([]rune{'(', '[', '{'}, cursor.Peek()) {
+			})
+		},
+	},
+	types.Scope: {
+		test: func(cursor *tools.Cursor) bool {
+			return slices.Contains([]rune{'(', '[', '{'}, cursor.Peek())
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
 			var openBracket = cursor.Peek()
 			var startLocation = []int{cursor.Line, cursor.Column}
 			var closeBracket = getMatchingBracket(openBracket)
@@ -113,26 +122,76 @@ func Tokenize(content []rune) types.TokenList {
 				return false
 			})
 
-			tokens.Push(types.Scope, body...)
 			if !cursor.Seek(1) { //? Go past the closing bracket
-				break //? EOF is past the character we are trying to skip, so break early
+				cursor.Read() //? EOF is past the character we are trying to skip, so make sure EOF is set to true
 			}
-			continue
-		}
 
-		var singleTokenType types.TokenType = 0
-
-		switch cursor.Peek() {
-		case '+', '-', '/', '*', '=', '>', '<', '!', '&', '|':
-			singleTokenType = types.Operator
-		case ',':
-			singleTokenType = types.Seperator
-		}
-
-		if singleTokenType != 0 {
-			tokens.Push(singleTokenType, cursor.Peek())
-
+			return body
+		},
+	},
+	types.Operator: {
+		test: func(cursor *tools.Cursor) bool {
+			return slices.Contains([]rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}, cursor.Peek())
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
+			v = []rune{cursor.Peek()}
 			cursor.Read()
+			return
+		},
+	},
+	types.Seperator: {
+		test: func(cursor *tools.Cursor) bool {
+			return cursor.Peek() == ','
+		},
+		handle: func(cursor *tools.Cursor) (v []rune) {
+			v = []rune{cursor.Peek()}
+			cursor.Read()
+			return
+		},
+	},
+}
+
+// Hold the keys in the order that they are defined as in the enum
+var handlerKeys []types.TokenType = make([]types.TokenType, 0, len(handlers))
+
+//#endregion
+
+func init() {
+	var err error
+	if regStream, err = regexp.Compile("\\w"); err != nil {
+		panic(err)
+	}
+
+	for tt := range handlers {
+		handlerKeys = append(handlerKeys, tt)
+	}
+
+	slices.Sort(handlerKeys)
+}
+
+func Tokenize(content []rune) types.TokenList {
+	//? The tokens that are already identified in this line
+	var tokens types.TokenList = types.NewTokenList()
+
+	//? The current index in the line
+	var cursor = tools.NewCursor(content)
+
+	for !cursor.EOF {
+		var handled = false
+		for _, tt := range handlerKeys {
+			h := handlers[tt]
+			if h.test(cursor) {
+				v := h.handle(cursor)
+				handled = true
+
+				if v != nil {
+					tokens.Push(tt, v...)
+				}
+				break
+			}
+		}
+
+		if handled {
 			continue
 		}
 
@@ -148,8 +207,6 @@ func Tokenize(content []rune) types.TokenList {
 		}
 
 		tokens.Push(types.Other, stream...)
-
-		continue
 	}
 
 	tokens.Push(types.EOF, 0)
@@ -157,6 +214,7 @@ func Tokenize(content []rune) types.TokenList {
 	return tokens
 }
 
+// #region Utilities
 func formatError(message string, char rune, line int, column int) string {
 	return fmt.Sprintf(color.InRed("%s \"%s\" at %s:%s"), message, string(char), color.InYellow(line), color.InYellow(column))
 }
@@ -183,3 +241,5 @@ func getMatchingBracket(bracket rune) rune {
 		return 0
 	}
 }
+
+//#endregion

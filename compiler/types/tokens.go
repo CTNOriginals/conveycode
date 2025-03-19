@@ -13,25 +13,16 @@ type TokenType int
 
 const (
 	_ TokenType = iota
-	String
-	Number
-
-	Assigner
-	Operator
-
-	Bracket
-	Seperator
-
-	// Keyword
-	// BuiltIn
-
-	Scope
-
-	Comment
-
-	Other
 
 	EOL
+	Comment
+	String
+	Number
+	Operator
+	Bracket
+	Seperator
+	Scope
+	Other
 	EOF
 )
 
@@ -39,24 +30,14 @@ func (this TokenType) String() string {
 	return [...]string{
 		"String",
 		"Number",
-
-		"Assigner",
+		"Comment",
 		"Operator",
-
 		"Bracket",
 		"Seperator",
-
-		// "Keyword",
-		// "BuiltIn",
-
 		"Scope",
-
-		"Comment",
-
-		"Other",
-
 		"EOL",
 		"EOF",
+		"Other",
 	}[this-1]
 }
 
