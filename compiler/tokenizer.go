@@ -30,7 +30,7 @@ func Tokenize(content []rune) types.TokenList {
 	for !cursor.EOF {
 		//? EOL
 		if cursor.Peek() == '\n' {
-			tokens.Push(types.EOL, "")
+			tokens.Push(types.EOL, 0)
 			cursor.Read()
 			continue
 		}
@@ -44,9 +44,9 @@ func Tokenize(content []rune) types.TokenList {
 		//? Comment
 		if cursor.Peek() == '/' && cursor.PeekNext() == '/' {
 			cursor.Seek(2) //? Move the cursor past the //
-			tokens.Push(types.Comment, string(cursor.ReadUntilFunc(func(c rune) bool {
+			tokens.Push(types.Comment, cursor.ReadUntilFunc(func(c rune) bool {
 				return c == '\n'
-			})))
+			})...)
 
 			continue
 		}
@@ -69,15 +69,15 @@ func Tokenize(content []rune) types.TokenList {
 				}
 			}
 
-			tokens.Push(types.String, string(stream))
+			tokens.Push(types.String, stream...)
 			continue
 		}
 
 		//? Number
 		if unicode.IsDigit(cursor.Peek()) {
-			tokens.Push(types.Number, string(cursor.ReadUntilFunc(func(c rune) bool {
+			tokens.Push(types.Number, cursor.ReadUntilFunc(func(c rune) bool {
 				return !unicode.IsDigit(c)
-			})))
+			})...)
 
 			continue
 		}
@@ -106,14 +106,14 @@ func Tokenize(content []rune) types.TokenList {
 				}
 
 				if cursor.EOF {
-					fmt.Printf(color.InRed("Unmatched bracket \"%s\" at %s:%s\n"), string(openBracket), color.InYellow(startLocation[0]), color.InYellow(startLocation[1]))
+					fmt.Println(formatError("Unmatched bracket", openBracket, startLocation[0], startLocation[1]))
 					return true
 				}
 
 				return false
 			})
 
-			tokens.Push(types.Scope, string(body))
+			tokens.Push(types.Scope, body...)
 			cursor.Seek(1) //? Go past the closing bracket
 			continue
 		}
@@ -128,7 +128,7 @@ func Tokenize(content []rune) types.TokenList {
 		}
 
 		if singleTokenType != 0 {
-			tokens.Push(singleTokenType, string(cursor.Peek()))
+			tokens.Push(singleTokenType, cursor.Peek())
 
 			cursor.Read()
 			continue
@@ -139,20 +139,24 @@ func Tokenize(content []rune) types.TokenList {
 		})
 
 		if len(stream) == 0 {
-			fmt.Printf("Unknown character: %v %d:%d\n", cursor.Peek(), cursor.Line, cursor.Column)
+			fmt.Println(formatError("Unknown character", cursor.Peek(), cursor.Line, cursor.Column))
 
 			cursor.Read()
 			continue
 		}
 
-		tokens.Push(types.Other, string(stream))
+		tokens.Push(types.Other, stream...)
 
 		continue
 	}
 
-	tokens.Push(types.EOF, "")
+	tokens.Push(types.EOF, 0)
 
 	return tokens
+}
+
+func formatError(message string, char rune, line int, column int) string {
+	return fmt.Sprintf(color.InRed("%s \"%s\" at %s:%s"), message, string(char), color.InYellow(line), color.InYellow(column))
 }
 
 func getMatchingBracket(bracket rune) rune {

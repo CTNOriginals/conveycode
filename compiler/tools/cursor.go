@@ -82,10 +82,6 @@ func (this *Cursor) Seek(offset uint) bool {
 		return false
 	}
 
-	if this.EOF {
-		this.EOF = false
-	}
-
 	for range offset {
 		if this.Content[this.Pos] == '\n' {
 			this.Column = 1
@@ -98,11 +94,6 @@ func (this *Cursor) Seek(offset uint) bool {
 	}
 
 	return true
-}
-
-// Consumes the current character and seeks next
-func (this *Cursor) Consume() bool {
-	return this.Seek(1)
 }
 
 // Peek at an offset relative to the cursors current position
@@ -137,7 +128,7 @@ func (this *Cursor) Read() (char rune) {
 
 	char = this.Peek()
 
-	if !this.Consume() {
+	if !this.Seek(1) {
 		this.EOF = true
 	}
 

@@ -63,10 +63,10 @@ func (this TokenType) String() string {
 //#region Token
 type Token struct {
 	TokenType TokenType
-	Value     string
+	Value     []rune
 }
 
-func NewToken(t TokenType, v string) Token {
+func NewToken(t TokenType, v []rune) Token {
 	return Token{
 		TokenType: t,
 		Value:     v,
@@ -74,7 +74,7 @@ func NewToken(t TokenType, v string) Token {
 }
 
 func (token Token) String() string {
-	return fmt.Sprintf("%s: %s", token.TokenType.String(), token.Value)
+	return fmt.Sprintf("%s: %s", token.TokenType, string(token.Value))
 }
 
 //#endregion
@@ -96,7 +96,7 @@ func (this *TokenList) String() (str string) {
 	return
 }
 
-func (this *TokenList) Push(t TokenType, v string) {
+func (this *TokenList) Push(t TokenType, v ...rune) {
 	this.Tokens = append(this.Tokens, NewToken(t, v))
 	fmt.Println(NewToken(t, v).String())
 }
