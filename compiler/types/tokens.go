@@ -88,16 +88,16 @@ func NewTokenList() TokenList {
 	return TokenList{}
 }
 
-func (this *TokenList) String() (str string) {
-	for _, token := range this.Tokens {
+func (tl *TokenList) String() (str string) {
+	for _, token := range tl.Tokens {
 		str += token.String() + "\n"
 	}
 
 	return
 }
 
-func (this *TokenList) Push(t TokenType, v ...rune) {
-	this.Tokens = append(this.Tokens, NewToken(t, v))
+func (tl *TokenList) Push(t TokenType, v ...rune) {
+	tl.Tokens = append(tl.Tokens, NewToken(t, v))
 	fmt.Println(NewToken(t, v).String())
 }
 
