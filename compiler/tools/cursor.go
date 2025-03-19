@@ -2,7 +2,6 @@ package tools
 
 import (
 	"conveycode/compiler/types"
-	"conveycode/compiler/utils"
 	"fmt"
 	"io"
 	"slices"
@@ -66,6 +65,7 @@ func NewCursor(content []rune) *Cursor {
 		Content: content,
 		Pos:     0,
 		Line:    1,
+		Column:  1,
 		EOF:     false,
 	}
 }
@@ -77,28 +77,25 @@ func (this *Cursor) String() string {
 // Seek the cursors position relative to its current position.
 //
 // If the offset is out of range, the cursors position will remain the same and the function returns false
-func (this *Cursor) Seek(offset int) bool {
-	if err := this.validateOffset(offset); err != nil {
+func (this *Cursor) Seek(offset uint) bool {
+	if err := this.validateOffset(int(offset)); err != nil {
 		return false
 	}
 
-	absOffset, signed := utils.Abs(offset)
-	direction := utils.If(signed, -1, 1)
-
-	if this.EOF && signed {
+	if this.EOF {
 		this.EOF = false
 	}
 
-	for range absOffset {
+	for range offset {
 		if this.Content[this.Pos] == '\n' {
-			this.Line += direction
-
+			this.Column = 1
+			this.Line++
+		} else {
+			this.Column++
 		}
 
-		this.Pos += direction
+		this.Pos++
 	}
-
-	this.Column = this.getColumn()
 
 	return true
 }
@@ -186,7 +183,7 @@ func (this *Cursor) getColumn() (col int) {
 	col = 0
 	char := this.Content[this.Pos] //? Cant use seek because seek calls this
 
-	for char != 10 && (this.Pos-(col+1)) > 0 { //? line feed
+	for char != '\n' && (this.Pos-(col+1)) > 0 { //? line feed
 		col++
 		char = this.Content[this.Pos-col]
 	}

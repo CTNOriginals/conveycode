@@ -31,13 +31,14 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
-	var instructions types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
+	/*instructions*/
+	var _ types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
 	var instructionLines []string
 
-	for _, content := range instructions.Tokens {
-		//? Debug Logging
-		fmt.Printf("\n%s", content)
-	}
+	// for _, content := range instructions.Tokens {
+	// 	//? Debug Logging
+	// 	fmt.Printf("\n%s", content)
+	// }
 
 	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

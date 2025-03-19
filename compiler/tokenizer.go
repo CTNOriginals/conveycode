@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"slices"
 	"unicode"
+
+	"github.com/TwiN/go-color"
 )
 
 var regStream *regexp.Regexp
@@ -27,7 +29,7 @@ func Tokenize(content []rune) types.TokenList {
 
 	for !cursor.EOF {
 		//? EOL
-		if cursor.Peek() == 10 {
+		if cursor.Peek() == '\n' {
 			tokens.Push(types.EOL, "")
 			cursor.Read()
 			continue
@@ -77,27 +79,35 @@ func Tokenize(content []rune) types.TokenList {
 				return !unicode.IsDigit(c)
 			})))
 
-			cursor.Seek(-1) //? the stream had to jump over the next character, so we bring it back here to not skip it
 			continue
 		}
 
 		//? Scope
 		if slices.Contains([]rune{'(', '[', '{'}, cursor.Peek()) {
 			var openBracket = cursor.Peek()
+			var startLocation = []int{cursor.Line, cursor.Column}
 			var closeBracket = getMatchingBracket(openBracket)
 			var depth = 0
 
 			cursor.Seek(1) //? Go past the opening bracket
 
 			var body = cursor.ReadUntilFunc(func(c rune) bool {
-				if c == closeBracket {
+				switch c {
+				case closeBracket:
 					if depth == 0 {
 						return true
 					} else {
 						depth--
 					}
-				} else if c == openBracket {
+				case openBracket:
 					depth++
+				default:
+					break
+				}
+
+				if cursor.EOF {
+					fmt.Printf(color.InRed("Unmatched bracket \"%s\" at %s:%s\n"), string(openBracket), color.InYellow(startLocation[0]), color.InYellow(startLocation[1]))
+					return true
 				}
 
 				return false
@@ -111,8 +121,6 @@ func Tokenize(content []rune) types.TokenList {
 		var singleTokenType types.TokenType = 0
 
 		switch cursor.Peek() {
-		case '(', ')', '[', ']', '{', '}': //TODO wrap all of the body after the open brace into a Scope token type
-			singleTokenType = types.Bracket
 		case '+', '-', '/', '*', '=', '>', '<', '!', '&', '|':
 			singleTokenType = types.Operator
 		case ',':
@@ -127,7 +135,7 @@ func Tokenize(content []rune) types.TokenList {
 		}
 
 		var stream = cursor.ReadUntilFunc(func(c rune) bool {
-			return !regStream.MatchString(string(cursor.PeekPrev()))
+			return !regStream.MatchString(string(c))
 		})
 
 		if len(stream) == 0 {
@@ -138,7 +146,6 @@ func Tokenize(content []rune) types.TokenList {
 		}
 
 		tokens.Push(types.Other, string(stream))
-		cursor.Seek(-1) //? the stream had to jump over the next character, so we bring it back here to not skip it
 
 		continue
 	}

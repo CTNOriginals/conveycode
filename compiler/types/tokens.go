@@ -98,6 +98,7 @@ func (this *TokenList) String() (str string) {
 
 func (this *TokenList) Push(t TokenType, v string) {
 	this.Tokens = append(this.Tokens, NewToken(t, v))
+	fmt.Println(NewToken(t, v).String())
 }
 
 //#endregion
