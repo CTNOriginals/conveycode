@@ -20,7 +20,14 @@ const (
 	Number
 	Operator
 	Seperator
-	Scope
+
+	RoundL
+	RoundR
+	SquareL
+	SquareR
+	CurlyL
+	CurlyR
+
 	Other
 	EOF
 )
@@ -33,7 +40,14 @@ func (this TokenType) String() string {
 		"Number",
 		"Operator",
 		"Seperator",
-		"Scope",
+
+		"RoundL",
+		"RoundR",
+		"SquareL",
+		"SquareR",
+		"CurlyL",
+		"CurlyR",
+
 		"Other",
 		"EOF",
 	}[this-1]

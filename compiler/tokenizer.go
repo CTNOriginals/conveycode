@@ -17,6 +17,10 @@ var regStream *regexp.Regexp
 type handler struct {
 	test   func(cursor *tools.Cursor) bool
 	handle func(cursor *tools.Cursor) (v []rune)
+
+	// If the type is just a simple set of specific characters,
+	// Populate them in here and leave the other fields nil
+	runes []rune
 }
 
 type handlerMap = map[types.TokenType]handler
@@ -88,67 +92,15 @@ var handlers = handlerMap{
 			})
 		},
 	},
-	types.Scope: {
-		test: func(cursor *tools.Cursor) bool {
-			return slices.Contains([]rune{'(', '[', '{'}, cursor.Peek())
-		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
-			var openBracket = cursor.Peek()
-			var startLocation = []int{cursor.Line, cursor.Column}
-			var closeBracket = getMatchingBracket(openBracket)
-			var depth = 0
 
-			cursor.Seek(1) //? Go past the opening bracket
-
-			var body = cursor.ReadUntilFunc(func(c rune) bool {
-				switch c {
-				case closeBracket:
-					if depth == 0 {
-						return true
-					} else {
-						depth--
-					}
-				case openBracket:
-					depth++
-				default:
-					break
-				}
-
-				if cursor.EOF {
-					fmt.Println(formatError("Unmatched bracket", openBracket, startLocation[0], startLocation[1]))
-					return true
-				}
-
-				return false
-			})
-
-			if !cursor.Seek(1) { //? Go past the closing bracket
-				cursor.Read() //? EOF is past the character we are trying to skip, so make sure EOF is set to true
-			}
-
-			return body
-		},
-	},
-	types.Operator: {
-		test: func(cursor *tools.Cursor) bool {
-			return slices.Contains([]rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}, cursor.Peek())
-		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
-			v = []rune{cursor.Peek()}
-			cursor.Read()
-			return
-		},
-	},
-	types.Seperator: {
-		test: func(cursor *tools.Cursor) bool {
-			return cursor.Peek() == ','
-		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
-			v = []rune{cursor.Peek()}
-			cursor.Read()
-			return
-		},
-	},
+	types.Operator:  {test: nil, handle: nil, runes: []rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}},
+	types.Seperator: {test: nil, handle: nil, runes: []rune{','}},
+	types.RoundL:    {test: nil, handle: nil, runes: []rune{'('}},
+	types.RoundR:    {test: nil, handle: nil, runes: []rune{')'}},
+	types.SquareL:   {test: nil, handle: nil, runes: []rune{'['}},
+	types.SquareR:   {test: nil, handle: nil, runes: []rune{']'}},
+	types.CurlyL:    {test: nil, handle: nil, runes: []rune{'{'}},
+	types.CurlyR:    {test: nil, handle: nil, runes: []rune{'}'}},
 }
 
 // Hold the keys in the order that they are defined as in the enum
@@ -178,14 +130,21 @@ func Tokenize(content []rune) types.TokenList {
 
 	for !cursor.EOF {
 		var handled = false
-		for _, tt := range handlerKeys {
-			h := handlers[tt]
-			if h.test(cursor) {
-				v := h.handle(cursor)
+		for _, typ := range handlerKeys {
+			hand := handlers[typ]
+
+			if hand.test == nil && hand.runes != nil {
+				if slices.Contains(hand.runes, cursor.Peek()) {
+					tokens.Push(typ, cursor.Read())
+					handled = true
+					break
+				}
+			} else if hand.test(cursor) {
+				val := hand.handle(cursor)
 				handled = true
 
-				if v != nil {
-					tokens.Push(tt, v...)
+				if val != nil {
+					tokens.Push(typ, val...)
 				}
 				break
 			}
