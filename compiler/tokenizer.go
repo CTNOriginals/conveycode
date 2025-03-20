@@ -84,7 +84,7 @@ var handlers = handlerMap{
 		},
 		handle: func(cursor *tools.Cursor) (v []rune) {
 			return cursor.ReadUntilFunc(func(c rune) bool {
-				return !unicode.IsDigit(c)
+				return !unicode.IsDigit(c) && c != '.'
 			})
 		},
 	},

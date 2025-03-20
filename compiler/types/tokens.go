@@ -19,7 +19,6 @@ const (
 	String
 	Number
 	Operator
-	Bracket
 	Seperator
 	Scope
 	Other
@@ -28,16 +27,15 @@ const (
 
 func (this TokenType) String() string {
 	return [...]string{
+		"EOL",
+		"Comment",
 		"String",
 		"Number",
-		"Comment",
 		"Operator",
-		"Bracket",
 		"Seperator",
 		"Scope",
-		"EOL",
-		"EOF",
 		"Other",
+		"EOF",
 	}[this-1]
 }
 
