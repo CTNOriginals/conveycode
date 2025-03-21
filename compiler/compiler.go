@@ -4,24 +4,10 @@ import (
 	"conveycode/compiler/types"
 	"conveycode/compiler/utils"
 	"fmt"
-	"regexp"
+	"strconv"
 
 	"github.com/TwiN/go-color"
 )
-
-type QuotedScope struct {
-	symbol string //? The character that started with it
-	state  bool
-}
-
-var regQuotes *regexp.Regexp
-
-func init() {
-	var err error
-	if regQuotes, err = regexp.Compile("[\"'`]"); err != nil {
-		panic(err)
-	}
-}
 
 // Compile a .conv file to .mlog
 //
@@ -32,13 +18,34 @@ func CompileFile(sourceFilePath string, dest string) {
 	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
 	/*instructions*/
-	var _ types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
-	var instructionLines []string
+	var tokens types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
 
-	// for _, content := range instructions.Tokens {
-	// 	//? Debug Logging
-	// 	fmt.Printf("\n%s", content)
-	// }
+	//? Debug logging
+	for _, token := range tokens {
+		if token.Typ == types.EOL {
+			fmt.Println("")
+			continue
+		}
 
-	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
+		var col string = color.Gray
+		var val any = string(token.Val)
+
+		switch token.Typ {
+		case types.String:
+			col = color.Red
+		case types.Number:
+			col = color.Green
+			val, _ = strconv.ParseInt(string(token.Val), 0, 64)
+		case types.Operator:
+			col = color.Blue
+		case types.Seperator:
+			col = color.Cyan
+		case types.RoundL, types.RoundR, types.SquareL, types.SquareR, types.CurlyL, types.CurlyR:
+			col = color.Yellow
+
+		}
+		fmt.Print(color.InUnderline(color.Colorize(col, val)) + " ")
+	}
+
+	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

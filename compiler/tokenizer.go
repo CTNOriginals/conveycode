@@ -110,7 +110,7 @@ var handlerKeys []types.TokenType = make([]types.TokenType, 0, len(handlers))
 
 func init() {
 	var err error
-	if regStream, err = regexp.Compile("\\w"); err != nil {
+	if regStream, err = regexp.Compile(`\w`); err != nil {
 		panic(err)
 	}
 
@@ -178,27 +178,27 @@ func formatError(message string, char rune, line int, column int) string {
 	return fmt.Sprintf(color.InRed("%s \"%s\" at %s:%s"), message, string(char), color.InYellow(line), color.InYellow(column))
 }
 
-func getMatchingBracket(bracket rune) rune {
-	switch bracket {
-	case '(':
-		return ')'
-	case ')':
-		return '('
+// func getMatchingBracket(bracket rune) rune {
+// 	switch bracket {
+// 	case '(':
+// 		return ')'
+// 	case ')':
+// 		return '('
 
-	case '[':
-		return ']'
-	case ']':
-		return '['
+// 	case '[':
+// 		return ']'
+// 	case ']':
+// 		return '['
 
-	case '{':
-		return '}'
-	case '}':
-		return '{'
+// 	case '{':
+// 		return '}'
+// 	case '}':
+// 		return '{'
 
-	default:
-		fmt.Printf("Unexpected character \"%s\", no matching bracked", string(bracket))
-		return 0
-	}
-}
+// 	default:
+// 		fmt.Printf("Unexpected character \"%s\", no matching bracked", string(bracket))
+// 		return 0
+// 	}
+// }
 
 //#endregion

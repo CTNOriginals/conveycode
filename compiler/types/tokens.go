@@ -55,34 +55,32 @@ func (this TokenType) String() string {
 
 //#region Token
 type Token struct {
-	TokenType TokenType
-	Value     []rune
+	Typ TokenType
+	Val []rune
 }
 
 func NewToken(t TokenType, v []rune) Token {
 	return Token{
-		TokenType: t,
-		Value:     v,
+		Typ: t,
+		Val: v,
 	}
 }
 
 func (token Token) String() string {
-	return fmt.Sprintf("%s: %s", token.TokenType, string(token.Value))
+	return fmt.Sprintf("%s: %s", token.Typ, string(token.Val))
 }
 
 //#endregion
 
 //#region Token List
-type TokenList struct {
-	Tokens []Token
-}
+type TokenList []Token
 
 func NewTokenList() TokenList {
-	return TokenList{}
+	return make(TokenList, 0)
 }
 
-func (tl *TokenList) String() (str string) {
-	for _, token := range tl.Tokens {
+func (tl TokenList) String() (str string) {
+	for _, token := range tl {
 		str += token.String() + "\n"
 	}
 
@@ -90,8 +88,7 @@ func (tl *TokenList) String() (str string) {
 }
 
 func (tl *TokenList) Push(t TokenType, v ...rune) {
-	tl.Tokens = append(tl.Tokens, NewToken(t, v))
-	fmt.Println(NewToken(t, v).String())
+	*tl = append(*tl, NewToken(t, v))
 }
 
 //#endregion

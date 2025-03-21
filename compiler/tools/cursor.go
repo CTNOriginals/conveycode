@@ -167,20 +167,4 @@ func (cur *Cursor) validateOffset(offset ...int) error {
 	return nil
 }
 
-func (cur *Cursor) getColumn() (col int) {
-	col = 0
-	char := cur.Content[cur.Pos] //? Cant use seek because seek calls cur
-
-	for char != '\n' && (cur.Pos-(col+1)) > 0 { //? line feed
-		col++
-		char = cur.Content[cur.Pos-col]
-	}
-
-	return col
-}
-
-// func (cur *Cursor) throw(err error) {
-// 	fmt.Println(err.Error())
-// }
-
 //#endregion
