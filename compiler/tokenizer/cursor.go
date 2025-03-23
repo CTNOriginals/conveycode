@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"slices"
+	"strings"
 )
 
 func CursorTests(content []rune) {
@@ -150,6 +151,10 @@ func (cur *Cursor) ReadUntilFunc(f func(c rune) bool) (list []rune) {
 	}
 
 	return
+}
+
+func (cur *Cursor) ContainsChar(haystack string) bool {
+	return strings.ContainsRune(haystack, cur.Peek())
 }
 
 //#region Private

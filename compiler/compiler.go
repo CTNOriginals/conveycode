@@ -4,7 +4,6 @@ import (
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
-	"strconv"
 
 	"github.com/TwiN/go-color"
 )
@@ -35,14 +34,12 @@ func CompileFile(sourceFilePath string, dest string) {
 			col = color.Red
 		case tokenizer.Number:
 			col = color.Green
-			val, _ = strconv.ParseInt(string(token.Val), 0, 64)
 		case tokenizer.Operator:
 			col = color.Blue
 		case tokenizer.Seperator:
 			col = color.Cyan
 		case tokenizer.RoundL, tokenizer.RoundR, tokenizer.SquareL, tokenizer.SquareR, tokenizer.CurlyL, tokenizer.CurlyR:
 			col = color.Yellow
-
 		}
 		fmt.Print(color.InUnderline(color.Colorize(col, val)) + " ")
 	}

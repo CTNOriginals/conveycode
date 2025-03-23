@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"strings"
 	"unicode"
 
 	"github.com/TwiN/go-color"
@@ -65,15 +66,11 @@ var handlers = handlerMap{
 
 			for {
 				s := cursor.ReadUntilFunc(func(c rune) bool {
-					return c == quote
+					return c == quote && cursor.PeekPrev() != '\\'
 				})
 
 				stream = append(stream, s...)
-				if stream[len(stream)-1] == '\\' {
-					stream = append(stream, quote)
-				} else {
-					break
-				}
+				break
 			}
 
 			cursor.Seek(1) //? Skip the closing quote
@@ -82,12 +79,49 @@ var handlers = handlerMap{
 	},
 	Number: {
 		test: func(cursor *Cursor) bool {
-			return unicode.IsDigit(cursor.Peek())
+			return unicode.IsDigit(cursor.Peek()) || (cursor.ContainsChar("+-") && unicode.IsDigit(cursor.PeekNext()))
 		},
 		handle: func(cursor *Cursor) (v []rune) {
-			return cursor.ReadUntilFunc(func(c rune) bool {
-				return !unicode.IsDigit(c) && c != '.'
-			})
+			var stream []rune
+
+			//? Is Hexadecimal
+			if cursor.Peek() == '0' && strings.ContainsRune("xX", cursor.PeekNext()) {
+				stream = append(stream, cursor.ReadN(2)...)
+
+				stream = append(stream, cursor.ReadUntilFunc(func(c rune) bool {
+					return !strings.ContainsRune("1234567890abcdefABCDEF", c)
+				})...)
+
+				return stream
+			}
+
+			if cursor.ContainsChar("+-") {
+				stream = append(stream, cursor.Read())
+			}
+
+			var decimalPoint = false
+			var exponent = false
+			stream = append(stream, cursor.ReadUntilFunc(func(c rune) bool {
+				//? Accept floating point numbers
+				if c == '.' && !decimalPoint && !exponent {
+					decimalPoint = true
+					return false
+				}
+
+				//? Accept exponents
+				if strings.ContainsRune("eE", c) && !exponent {
+					exponent = true
+					return false
+				}
+
+				if cursor.ContainsChar("+-") && strings.ContainsRune("eE", cursor.PeekPrev()) {
+					return false
+				}
+
+				return !unicode.IsDigit(c)
+			})...)
+
+			return stream
 		},
 	},
 
