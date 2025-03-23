@@ -1,8 +1,6 @@
-package compiler
+package tokenizer
 
 import (
-	"conveycode/compiler/tools"
-	"conveycode/compiler/types"
 	"fmt"
 	"regexp"
 	"slices"
@@ -15,53 +13,53 @@ var regStream *regexp.Regexp
 
 // #region Handlers
 type handler struct {
-	test   func(cursor *tools.Cursor) bool
-	handle func(cursor *tools.Cursor) (v []rune)
+	test   func(cursor *Cursor) bool
+	handle func(cursor *Cursor) (v []rune)
 
 	// If the type is just a simple set of specific characters,
 	// Populate them in here and leave the other fields nil
 	runes []rune
 }
 
-type handlerMap = map[types.TokenType]handler
+type handlerMap = map[TokenType]handler
 
 var handlers = handlerMap{
 	0: {
-		test: func(cursor *tools.Cursor) bool {
+		test: func(cursor *Cursor) bool {
 			return unicode.IsSpace(cursor.Peek()) && cursor.Peek() != '\n'
 		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
+		handle: func(cursor *Cursor) (v []rune) {
 			v = nil
 			cursor.Read()
 			return
 		},
 	},
-	types.EOL: {
-		test: func(cursor *tools.Cursor) bool {
+	EOL: {
+		test: func(cursor *Cursor) bool {
 			return cursor.Peek() == '\n'
 		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
+		handle: func(cursor *Cursor) (v []rune) {
 			v = []rune{0}
 			cursor.Read()
 			return
 		},
 	},
-	types.Comment: {
-		test: func(cursor *tools.Cursor) bool {
+	Comment: {
+		test: func(cursor *Cursor) bool {
 			return cursor.Peek() == '/' && cursor.PeekNext() == '/'
 		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
+		handle: func(cursor *Cursor) (v []rune) {
 			cursor.Seek(2) //? Move the cursor past the //
 			return cursor.ReadUntilFunc(func(c rune) bool {
 				return c == '\n'
 			})
 		},
 	},
-	types.String: {
-		test: func(cursor *tools.Cursor) bool {
+	String: {
+		test: func(cursor *Cursor) bool {
 			return slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\'
 		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
+		handle: func(cursor *Cursor) (v []rune) {
 			var quote = cursor.Read()
 			var stream []rune
 
@@ -82,29 +80,29 @@ var handlers = handlerMap{
 			return stream
 		},
 	},
-	types.Number: {
-		test: func(cursor *tools.Cursor) bool {
+	Number: {
+		test: func(cursor *Cursor) bool {
 			return unicode.IsDigit(cursor.Peek())
 		},
-		handle: func(cursor *tools.Cursor) (v []rune) {
+		handle: func(cursor *Cursor) (v []rune) {
 			return cursor.ReadUntilFunc(func(c rune) bool {
 				return !unicode.IsDigit(c) && c != '.'
 			})
 		},
 	},
 
-	types.Operator:  {test: nil, handle: nil, runes: []rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}},
-	types.Seperator: {test: nil, handle: nil, runes: []rune{','}},
-	types.RoundL:    {test: nil, handle: nil, runes: []rune{'('}},
-	types.RoundR:    {test: nil, handle: nil, runes: []rune{')'}},
-	types.SquareL:   {test: nil, handle: nil, runes: []rune{'['}},
-	types.SquareR:   {test: nil, handle: nil, runes: []rune{']'}},
-	types.CurlyL:    {test: nil, handle: nil, runes: []rune{'{'}},
-	types.CurlyR:    {test: nil, handle: nil, runes: []rune{'}'}},
+	Operator:  {test: nil, handle: nil, runes: []rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}},
+	Seperator: {test: nil, handle: nil, runes: []rune{','}},
+	RoundL:    {test: nil, handle: nil, runes: []rune{'('}},
+	RoundR:    {test: nil, handle: nil, runes: []rune{')'}},
+	SquareL:   {test: nil, handle: nil, runes: []rune{'['}},
+	SquareR:   {test: nil, handle: nil, runes: []rune{']'}},
+	CurlyL:    {test: nil, handle: nil, runes: []rune{'{'}},
+	CurlyR:    {test: nil, handle: nil, runes: []rune{'}'}},
 }
 
 // Hold the keys in the order that they are defined as in the enum
-var handlerKeys []types.TokenType = make([]types.TokenType, 0, len(handlers))
+var handlerKeys []TokenType = make([]TokenType, 0, len(handlers))
 
 //#endregion
 
@@ -121,12 +119,12 @@ func init() {
 	slices.Sort(handlerKeys)
 }
 
-func Tokenize(content []rune) types.TokenList {
+func Tokenize(content []rune) TokenList {
 	//? The tokens that are already identified in this line
-	var tokens types.TokenList = types.NewTokenList()
+	var tokens TokenList = NewTokenList()
 
 	//? The current index in the line
-	var cursor = tools.NewCursor(content)
+	var cursor = NewCursor(content)
 
 	for !cursor.EOF {
 		var handled = false
@@ -165,10 +163,10 @@ func Tokenize(content []rune) types.TokenList {
 			continue
 		}
 
-		tokens.Push(types.Other, stream...)
+		tokens.Push(Other, stream...)
 	}
 
-	tokens.Push(types.EOF, 0)
+	tokens.Push(EOF, 0)
 
 	return tokens
 }

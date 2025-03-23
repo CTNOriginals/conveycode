@@ -1,7 +1,7 @@
 package compiler
 
 import (
-	"conveycode/compiler/types"
+	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
 	"strconv"
@@ -18,11 +18,11 @@ func CompileFile(sourceFilePath string, dest string) {
 	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
 	/*instructions*/
-	var tokens types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
+	var tokens tokenizer.TokenList = tokenizer.Tokenize(utils.GetFileRunes(sourceFilePath))
 
 	//? Debug logging
 	for _, token := range tokens {
-		if token.Typ == types.EOL {
+		if token.Typ == tokenizer.EOL {
 			fmt.Println("")
 			continue
 		}
@@ -31,16 +31,16 @@ func CompileFile(sourceFilePath string, dest string) {
 		var val any = string(token.Val)
 
 		switch token.Typ {
-		case types.String:
+		case tokenizer.String:
 			col = color.Red
-		case types.Number:
+		case tokenizer.Number:
 			col = color.Green
 			val, _ = strconv.ParseInt(string(token.Val), 0, 64)
-		case types.Operator:
+		case tokenizer.Operator:
 			col = color.Blue
-		case types.Seperator:
+		case tokenizer.Seperator:
 			col = color.Cyan
-		case types.RoundL, types.RoundR, types.SquareL, types.SquareR, types.CurlyL, types.CurlyR:
+		case tokenizer.RoundL, tokenizer.RoundR, tokenizer.SquareL, tokenizer.SquareR, tokenizer.CurlyL, tokenizer.CurlyR:
 			col = color.Yellow
 
 		}

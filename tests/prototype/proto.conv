@@ -1,0 +1,10 @@
+var str = "Hello \"World"
+var num = -12345.321e+123
+var wa = 0xff43DE
+
+if (z >= 10) {
+	print("z < 10 (", z, ")")
+}
+else {
+	print("z >= 10 (", z, ")")
+}
