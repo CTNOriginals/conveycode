@@ -1,7 +1,8 @@
 package compiler
 
 import (
-	"conveycode/compiler/types"
+	"conveycode/compiler/lexer"
+	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
 	"strconv"
@@ -17,12 +18,13 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
 
-	/*instructions*/
-	var tokens types.TokenList = Tokenize(utils.GetFileRunes(sourceFilePath))
+	var content = utils.GetFileRunes(sourceFilePath)
+	var tokens tokenizer.TokenList = tokenizer.Tokenize(content)
 
 	//? Debug logging
+	fmt.Printf("-- %s --\n", color.InBlue("Tokenizer"))
 	for _, token := range tokens {
-		if token.Typ == types.EOL {
+		if token.Typ == tokenizer.EOL {
 			fmt.Println("")
 			continue
 		}
@@ -31,21 +33,34 @@ func CompileFile(sourceFilePath string, dest string) {
 		var val any = string(token.Val)
 
 		switch token.Typ {
-		case types.String:
+		case tokenizer.String:
 			col = color.Red
-		case types.Number:
+		case tokenizer.Number:
 			col = color.Green
 			val, _ = strconv.ParseInt(string(token.Val), 0, 64)
-		case types.Operator:
+		case tokenizer.Operator:
 			col = color.Blue
-		case types.Seperator:
+		case tokenizer.Seperator:
 			col = color.Cyan
-		case types.RoundL, types.RoundR, types.SquareL, types.SquareR, types.CurlyL, types.CurlyR:
+		case tokenizer.RoundL, tokenizer.RoundR, tokenizer.SquareL, tokenizer.SquareR, tokenizer.CurlyL, tokenizer.CurlyR:
 			col = color.Yellow
 
 		}
 		fmt.Print(color.InUnderline(color.Colorize(col, val)) + " ")
 	}
+
+	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
+	var lx = lexer.Lex(content)
+	var item, ok = <-lx.Items
+
+	for ok {
+		fmt.Println(item.ColoredString())
+		item, ok = <-lx.Items
+	}
+
+	// for item.Typ != lexer.LexEOF {
+	// 	// fmt.Println(string(item.Val))
+	// }
 
 	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

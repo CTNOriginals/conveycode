@@ -13,7 +13,8 @@ var testCases [][]string = [][]string{
 	// {"tests/print/print.conv", "tests/print/compiled/"},
 	// {"tests/print/printLine.conv", "tests/print/compiled/"},
 	// {"tests/print/printInterpelate.conv", "tests/print/compiled/"},
-	{"tests/condition/ifStatement.conv", "tests/condition/compiled/"},
+	// {"tests/condition/ifStatement.conv", "tests/condition/compiled/"},
+	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
 }
 
 func main() {

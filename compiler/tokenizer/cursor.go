@@ -1,4 +1,4 @@
-package tools
+package tokenizer
 
 import (
 	"conveycode/compiler/types"
