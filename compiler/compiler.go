@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"conveycode/compiler/lexer"
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
@@ -20,28 +21,23 @@ func CompileFile(sourceFilePath string, dest string) {
 	var tokens tokenizer.TokenList = tokenizer.Tokenize(utils.GetFileRunes(sourceFilePath))
 
 	//? Debug logging
+	fmt.Printf("\n\n-- %s --\n", color.InBlue("Tokenizer"))
 	for _, token := range tokens {
 		if token.Typ == tokenizer.EOL {
 			fmt.Println("")
 			continue
 		}
 
-		var col string = color.Gray
-		var val any = string(token.Val)
+		fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
+	}
 
-		switch token.Typ {
-		case tokenizer.String:
-			col = color.Red
-		case tokenizer.Number:
-			col = color.Green
-		case tokenizer.Operator:
-			col = color.Blue
-		case tokenizer.Seperator:
-			col = color.Cyan
-		case tokenizer.RoundL, tokenizer.RoundR, tokenizer.SquareL, tokenizer.SquareR, tokenizer.CurlyL, tokenizer.CurlyR:
-			col = color.Yellow
-		}
-		fmt.Print(color.InUnderline(color.Colorize(col, val)) + " ")
+	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
+	var lx = lexer.Lex(tokens)
+	var block, ok = <-lx.Blocks
+
+	for ok {
+		fmt.Println(block.String())
+		block, ok = <-lx.Blocks
 	}
 
 	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)

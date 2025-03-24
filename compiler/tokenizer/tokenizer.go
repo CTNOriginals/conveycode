@@ -62,7 +62,7 @@ var handlers = handlerMap{
 		},
 		handle: func(cursor *Cursor) (v []rune) {
 			var quote = cursor.Read()
-			var stream []rune
+			var stream []rune = []rune{quote}
 
 			for {
 				s := cursor.ReadUntilFunc(func(c rune) bool {
@@ -73,7 +73,7 @@ var handlers = handlerMap{
 				break
 			}
 
-			cursor.Seek(1) //? Skip the closing quote
+			stream = append(stream, cursor.Read())
 			return stream
 		},
 	},
@@ -197,7 +197,7 @@ func Tokenize(content []rune) TokenList {
 			continue
 		}
 
-		tokens.Push(Other, stream...)
+		tokens.Push(Text, stream...)
 	}
 
 	tokens.Push(EOF, 0)

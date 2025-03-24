@@ -1,8 +1,11 @@
 package tokenizer
 
-import "fmt"
+import (
+	"fmt"
 
-// #region Class Token
+	"github.com/TwiN/go-color"
+)
+
 type TokenType int
 
 const (
@@ -22,7 +25,7 @@ const (
 	CurlyL
 	CurlyR
 
-	Other
+	Text
 	EOF
 )
 
@@ -47,7 +50,7 @@ func (this TokenType) String() string {
 	}[this-1]
 }
 
-//#region Token
+// #region Token
 type Token struct {
 	Typ TokenType
 	Val []rune
@@ -64,48 +67,19 @@ func (token Token) String() string {
 	return fmt.Sprintf("%s: %s", token.Typ, string(token.Val))
 }
 
-//#endregion
-
-//#region Token List
-type TokenList []Token
-
-func NewTokenList() TokenList {
-	return make(TokenList, 0)
-}
-
-func (tl TokenList) String() (str string) {
-	for _, token := range tl {
-		str += token.String() + "\n"
+func (this Token) ColoredValue() string {
+	switch this.Typ {
+	case String:
+		return color.Colorize(color.Red, string(this.Val))
+	case Number:
+		return color.Colorize(color.Green, string(this.Val))
+	case Operator:
+		return color.Colorize(color.Blue, string(this.Val))
+	case Seperator:
+		return color.Colorize(color.Cyan, string(this.Val))
+	case RoundL, RoundR, SquareL, SquareR, CurlyL, CurlyR:
+		return color.Colorize(color.Yellow, string(this.Val))
 	}
 
-	return
+	return string(this.Val)
 }
-
-func (tl *TokenList) Push(t TokenType, v ...rune) {
-	*tl = append(*tl, NewToken(t, v))
-	// fmt.Println(NewToken(t, v))
-}
-
-//#endregion
-
-//#endregion
-
-// #region Constents
-var Keywords = []string{
-	"var",
-	"func",
-
-	"if",
-	"else",
-
-	"continue",
-	"break",
-	"return",
-}
-var BuiltIns = []string{
-	"print",
-	"println",
-	"flush",
-}
-
-//#endregion
