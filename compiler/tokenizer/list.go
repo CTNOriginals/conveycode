@@ -1,5 +1,7 @@
 package tokenizer
 
+import "strings"
+
 type TokenList []Token
 
 func NewTokenList() TokenList {
@@ -7,11 +9,12 @@ func NewTokenList() TokenList {
 }
 
 func (this TokenList) String() (str string) {
-	for _, token := range this {
-		str += token.String()
+	var list = make([]string, len(this))
+	for i, token := range this {
+		list[i] = token.String()
 	}
 
-	return str
+	return strings.Join(list, "\n  ")
 }
 
 // Returns the stream of values contained in the list

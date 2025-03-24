@@ -45,7 +45,7 @@ func (this TokenType) String() string {
 		"CurlyL",
 		"CurlyR",
 
-		"Other",
+		"Text",
 		"EOF",
 	}[this-1]
 }
@@ -63,23 +63,27 @@ func NewToken(t TokenType, v []rune) Token {
 	}
 }
 
-func (token Token) String() string {
-	return fmt.Sprintf("%s: %s", token.Typ, string(token.Val))
+func (this Token) String() string {
+	return fmt.Sprintf("%s: %s", color.InGreen(this.Typ), string(this.Val))
+}
+
+func (this Token) GetTypeColor() string {
+	switch this.Typ {
+	case String:
+		return color.Red
+	case Number:
+		return color.Green
+	case Operator:
+		return color.Blue
+	case Seperator:
+		return color.Cyan
+	case RoundL, RoundR, SquareL, SquareR, CurlyL, CurlyR:
+		return color.Yellow
+	}
+
+	return ""
 }
 
 func (this Token) ColoredValue() string {
-	switch this.Typ {
-	case String:
-		return color.Colorize(color.Red, string(this.Val))
-	case Number:
-		return color.Colorize(color.Green, string(this.Val))
-	case Operator:
-		return color.Colorize(color.Blue, string(this.Val))
-	case Seperator:
-		return color.Colorize(color.Cyan, string(this.Val))
-	case RoundL, RoundR, SquareL, SquareR, CurlyL, CurlyR:
-		return color.Colorize(color.Yellow, string(this.Val))
-	}
-
-	return string(this.Val)
+	return this.GetTypeColor() + string(this.Val)
 }

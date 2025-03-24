@@ -3,6 +3,8 @@ package lexer
 import (
 	"conveycode/compiler/tokenizer"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/TwiN/go-color"
 )
@@ -10,6 +12,7 @@ import (
 type lexer struct {
 	Blocks chan block
 	tokens tokenizer.TokenList
+	items  []item
 	start  int
 	pos    int
 }
@@ -26,12 +29,6 @@ func Lex(tokens tokenizer.TokenList) (ret lexer) {
 }
 
 func (this *lexer) run() {
-	this.start = 16
-	this.pos = this.start + 18
-	// fmt.Println(this.getLocationHighlight())
-
-	this.errorf("Test error")
-
 	var state StateFn
 	for state = LexText; state != nil; {
 		state = state(this)
@@ -60,12 +57,12 @@ func (this *lexer) next() (ret tokenizer.Token) {
 	}
 
 	this.pos++
-	return
+	return ret
 }
 
 func (this *lexer) backup() {
 	if this.length() <= 0 {
-		//! ERROR
+		this.errorf("Can not backup past start")
 		return
 	}
 	this.pos--
@@ -81,6 +78,86 @@ func (this *lexer) peek() (ret tokenizer.Token) {
 func (this *lexer) consume() {
 	this.start = this.pos
 }
+
+func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
+	if slices.Contains(valid, this.next().Typ) {
+		return true
+	}
+
+	this.backup()
+	return false
+}
+func (this *lexer) acceptContent(valid string) bool {
+	if string(this.next().Val) == valid {
+		return true
+	}
+
+	this.backup()
+	return false
+}
+
+// Accept until f returns true
+func (this *lexer) acceptUntilFunc(f func(token tokenizer.Token) bool) bool {
+	for {
+		if this.isEOF() {
+			return false
+		}
+
+		if f(this.next()) {
+			return true
+		}
+	}
+}
+
+func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
+	var token = this.next()
+	if !slices.Contains(valid, token.Typ) {
+		var validString []string = make([]string, len(valid))
+
+		for i, typ := range valid {
+			validString[i] = typ.String()
+		}
+
+		return false, this.errorf("expected type [%s] but found %s", strings.Join(validString, ", "), token.String())
+	}
+
+	return true, nil
+}
+
+func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
+	for _, valid := range seq {
+		if valid, err := this.expect(valid...); !valid {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (this *lexer) stream() (tokens []tokenizer.Token) {
+	tokens = make([]tokenizer.Token, this.length())
+	for i, token := range this.tokens[this.start:this.pos] {
+		tokens[i] = token
+	}
+
+	return tokens
+}
+
+func (this *lexer) emitItem(typ itemType) {
+	this.items = append(this.items, NewItem(typ, this.stream()...))
+	this.consume()
+}
+func (this *lexer) emitBlock(typ blockType) {
+	this.Blocks <- block{
+		Typ:   typ,
+		Items: this.items,
+	}
+
+	this.items = make([]item, 0)
+	this.consume()
+}
+
+//#region Utils
 
 // Returns all the values of the tokens in sequence
 // highlighting the section between the current start and pos of the lexer
@@ -130,6 +207,8 @@ func (this *lexer) errorf(format string, args ...any) StateFn {
 
 	return nil
 }
+
+//#endregion
 
 //() Item constructor
 //| Select items over channel

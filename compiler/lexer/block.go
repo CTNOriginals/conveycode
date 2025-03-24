@@ -1,6 +1,11 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/TwiN/go-color"
+)
 
 type blockType int
 
@@ -28,8 +33,22 @@ type block struct {
 	Items []item
 }
 
+func NewBlock(typ blockType) block {
+	return block{
+		Typ: typ,
+	}
+}
+
 func (this block) String() (str string) {
-	return fmt.Sprintf("%s: %s", this.Typ, this.Items)
+	var itemString = make([]string, len(this.Items))
+	for i, item := range this.Items {
+		itemString[i] = item.String()
+	}
+	return fmt.Sprintf("%s\n %s", color.InBlue(color.Bold+this.Typ.String()), strings.Join(itemString, " "))
+}
+
+func (this *block) push(item ...item) {
+	this.Items = append(this.Items, item...)
 }
 
 // func NewBlock(typ blockType) (ret block, ) {

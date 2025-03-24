@@ -3,6 +3,8 @@ package lexer
 import (
 	"conveycode/compiler/tokenizer"
 	"fmt"
+
+	"github.com/TwiN/go-color"
 )
 
 type itemType int
@@ -32,10 +34,21 @@ func (this itemType) String() string {
 }
 
 type item struct {
-	Typ   itemType
-	Token tokenizer.TokenList
+	Typ    itemType
+	Tokens tokenizer.TokenList
+}
+
+func NewItem(typ itemType, tokens ...tokenizer.Token) item {
+	return item{
+		Typ:    typ,
+		Tokens: tokens,
+	}
 }
 
 func (this item) String() string {
-	return fmt.Sprintf("%s: %s", this.Typ, this.Token.String())
+	return fmt.Sprintf("%s\n  %s\n", color.InCyan(color.Bold+this.Typ.String()), this.Tokens.String())
+}
+
+func (this *item) push(token ...tokenizer.Token) {
+	this.Tokens = append(this.Tokens, token...)
 }
