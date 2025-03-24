@@ -18,7 +18,7 @@ var testCases [][]string = [][]string{
 }
 
 func main() {
-	fmt.Printf("\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
+	fmt.Printf("\n\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
 
 	for _, testCase := range testCases {
 		compiler.CompileFile(testCase[0], testCase[1])
