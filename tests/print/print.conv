@@ -1,11 +1,8 @@
-print("Hello ")
-print("World\n")
+$print("Hello ")
+$print("World\n")
 
-// This is a comment
-print(" \"Foo ")
+$print("\n")
 
-// var foo = bar
-// print("foobar")
-print("Bar\" ")
+$print(" \"Foo ")
 
-print("foo", "bar")
+$print("Bar\" ")

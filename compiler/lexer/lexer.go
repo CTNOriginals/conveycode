@@ -155,9 +155,7 @@ func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
 }
 
 func (this *lexer) stream() (tokens []tokenizer.Token) {
-	tokens = make([]tokenizer.Token, this.length())
-	copy(tokens, this.tokens[this.start:this.pos])
-	return tokens
+	return this.tokens[this.start:this.pos]
 }
 
 func (this *lexer) wrapScope() bool {

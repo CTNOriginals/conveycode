@@ -17,6 +17,7 @@ const (
 	Assignment
 	Statement
 	Method
+	Instruction
 
 	BlockError
 )
@@ -27,6 +28,7 @@ func (this blockType) String() string {
 		"Assignment",
 		"Statement",
 		"Method",
+		"Instruction",
 		"BlockError",
 	}[this-1]
 }

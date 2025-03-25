@@ -1,1 +1,3 @@
-$print("awdawd")
+var x = "World"
+$print("Hello", x)
+$flush("message1")

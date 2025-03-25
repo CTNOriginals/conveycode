@@ -125,6 +125,19 @@ var handlers = handlerMap{
 		},
 	},
 
+	Command: {
+		test: func(cursor *Cursor) bool {
+			return cursor.Peek() == '$'
+		},
+		handle: func(cursor *Cursor) (v []rune) {
+			cursor.Read()
+
+			return cursor.ReadUntilFunc(func(c rune) bool {
+				return !regStream.MatchString(string(c))
+			})
+		},
+	},
+
 	Operator:  {test: nil, handle: nil, runes: []rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}},
 	Seperator: {test: nil, handle: nil, runes: []rune{','}},
 	RoundL:    {test: nil, handle: nil, runes: []rune{'('}},

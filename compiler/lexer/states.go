@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
+	"conveycode/compiler/types"
 	"slices"
 )
 
@@ -24,22 +25,24 @@ func LexText(lx *lexer) StateFn {
 	for {
 		var token = lx.next()
 
-		if lx.isEOF() {
+		if token.Typ == tokenizer.EOF {
 			break
 		}
 
-		if token.Typ == tokenizer.EOL {
+		switch token.Typ {
+		case tokenizer.EOL:
 			lx.consume()
-			return LexText
-		}
-
-		switch string(token.Val) {
-		case "var":
-			return lexAssignment
-		case "if":
-			return lexIfStatement
-		case "else":
-			return lexElseStatement
+		case tokenizer.Command:
+			return lexCommand
+		case tokenizer.Text:
+			switch string(token.Val) {
+			case "var":
+				return lexAssignment
+			case "if":
+				return lexIfStatement
+			case "else":
+				return lexElseStatement
+			}
 		}
 	}
 
@@ -47,10 +50,6 @@ func LexText(lx *lexer) StateFn {
 }
 
 func lexAssignment(lx *lexer) (state StateFn) {
-	defer func() {
-
-	}()
-
 	lx.emitItem(Keyword)
 
 	if valid, err := lx.expect(tokenizer.Text); !valid {
@@ -65,7 +64,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 
 	lx.emitItem(Operator)
 
-	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
+	lx.acceptUntilFunc(func(token tokenizer.Token) bool {
 		var valueContent = append(valueTokenTypes, tokenizer.Operator)
 
 		if slices.Contains(valueContent, token.Typ) {
@@ -88,9 +87,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 		}
 
 		return true
-	}) {
-		return lx.errorf("Invalid value assignment")
-	}
+	})
 
 	lx.emitItem(Value)
 
@@ -145,6 +142,28 @@ func lexElseStatement(lx *lexer) StateFn {
 	lx.emitItem(Scope)
 
 	lx.emitBlock(Statement)
+
+	return LexText
+}
+
+func lexCommand(lx *lexer) StateFn {
+	if !slices.Contains(types.Commands, string(lx.peekBack().Val)) {
+		return lx.errorf("Unknown command: %s", string(lx.peekBack().Val))
+	}
+
+	lx.emitItem(Command)
+
+	if valid, err := lx.expect(tokenizer.RoundL); !valid {
+		return err
+	}
+
+	if !lx.wrapScope() {
+		return lx.errorf("Unmatched bracket")
+	}
+
+	lx.emitItem(Scope)
+
+	lx.emitBlock(Instruction)
 
 	return LexText
 }

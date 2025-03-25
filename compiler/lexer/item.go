@@ -19,6 +19,7 @@ const (
 	Operator
 	Identifier
 	Scope
+	Command
 	ItemError
 )
 
@@ -31,6 +32,7 @@ func (this itemType) String() string {
 		"Operator",
 		"Identifier",
 		"Scope",
+		"Command",
 		"ItemError",
 	}[this-1]
 }

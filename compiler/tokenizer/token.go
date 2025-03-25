@@ -17,6 +17,7 @@ const (
 	Number
 	Operator
 	Seperator
+	Command
 
 	RoundL
 	RoundR
@@ -37,6 +38,7 @@ func (this TokenType) String() string {
 		"Number",
 		"Operator",
 		"Seperator",
+		"Command",
 
 		"RoundL",
 		"RoundR",
