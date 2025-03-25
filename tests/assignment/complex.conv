@@ -1,0 +1,8 @@
+var x = 3
+var y = 52454 + -123.321e+2
+var hex = 0xff43DE
+
+var z = x + y - (
+	(x / y) + 
+	(y * x - (6 % 5))
+) + y - x
