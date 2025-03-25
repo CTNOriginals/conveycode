@@ -101,6 +101,12 @@ func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
 	this.backup()
 	return false
 }
+
+func (this *lexer) acceptRun(valid ...tokenizer.TokenType) {
+	for this.accept(valid...) {
+	}
+}
+
 func (this *lexer) acceptContent(valid string) bool {
 	if string(this.next().Val) == valid {
 		return true
@@ -228,7 +234,7 @@ func (this *lexer) getLocationHighlight() string {
 			}
 		}
 
-		if within(i) {
+		if within(i) || (this.length() == 0 && i == this.pos) {
 			str += color.InUnderline(color.WhiteBackground + part)
 		} else {
 			str += color.InUnderline(part)

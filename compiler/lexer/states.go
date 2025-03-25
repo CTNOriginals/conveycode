@@ -2,22 +2,24 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
+	"slices"
 )
 
 type StateFn func(*lexer) StateFn
 
 var valueTokenTypes = []tokenizer.TokenType{tokenizer.String, tokenizer.Number, tokenizer.Text}
+var bracketTokenTypes = []tokenizer.TokenType{
+	tokenizer.RoundL,
+	tokenizer.SquareL,
+	tokenizer.CurlyL,
+	tokenizer.RoundR,
+	tokenizer.SquareR,
+	tokenizer.CurlyR,
+}
+var openBracketTokenTypes = bracketTokenTypes[:3]
+var closeBracketTokenTypes = bracketTokenTypes[3:]
 
 func LexText(lx *lexer) StateFn {
-	// var redirect = func(state StateFn) StateFn {
-	// 	if lx.length() > 1 {
-	// 		lx.emitItem(ItemText)
-	// 		lx.emitBlock(BlockText)
-	// 	}
-
-	// 	return state
-	// }
-
 	for {
 		var token = lx.next()
 
@@ -43,7 +45,7 @@ func LexText(lx *lexer) StateFn {
 	return nil
 }
 
-func lexAssignment(lx *lexer) StateFn {
+func lexAssignment(lx *lexer) (state StateFn) {
 	defer func() {
 
 	}()
@@ -62,8 +64,31 @@ func lexAssignment(lx *lexer) StateFn {
 
 	lx.emitItem(Operator)
 
-	if valid, err := lx.expect(valueTokenTypes...); !valid {
-		return err
+	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
+		var valueContent = append(valueTokenTypes, tokenizer.Operator)
+
+		if slices.Contains(valueContent, token.Typ) {
+			return false
+		}
+
+		if token.Typ == tokenizer.RoundL {
+			if !lx.wrapScope() {
+				lx.errorf("Value assignment contained unmatched bracket")
+				lx.consume()
+				return true
+			}
+
+			return false
+		}
+
+		if token.Typ == tokenizer.EOL {
+			lx.backup()
+			return true
+		}
+
+		return true
+	}) {
+		return lx.errorf("Invalid value assignment")
 	}
 
 	lx.emitItem(Value)
