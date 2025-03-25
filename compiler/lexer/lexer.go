@@ -35,6 +35,10 @@ func (this *lexer) run() {
 	}
 
 	close(this.Blocks)
+
+	//* Cleanup
+	this.tokens = nil
+	this.items = nil
 }
 
 func (this *lexer) token() tokenizer.Token {
@@ -68,11 +72,21 @@ func (this *lexer) backup() {
 	this.pos--
 }
 
-func (this *lexer) peek() (ret tokenizer.Token) {
+func (this *lexer) peek() (tok tokenizer.Token) {
 	this.next()
-	ret = this.token()
+	tok = this.token()
 	this.backup()
 	return
+}
+
+func (this *lexer) peekBack() (tok tokenizer.Token) {
+	if this.pos == 0 {
+		return tokenizer.Token{
+			Typ: tokenizer.EOF,
+		}
+	}
+
+	return this.tokens[this.pos-1]
 }
 
 func (this *lexer) consume() {
@@ -136,11 +150,37 @@ func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
 
 func (this *lexer) stream() (tokens []tokenizer.Token) {
 	tokens = make([]tokenizer.Token, this.length())
-	for i, token := range this.tokens[this.start:this.pos] {
-		tokens[i] = token
+	copy(tokens, this.tokens[this.start:this.pos])
+	return tokens
+}
+
+func (this *lexer) wrapScope() bool {
+	var openBracket = this.peekBack().Typ
+	var closeBracket tokenizer.TokenType
+
+	switch openBracket {
+	case tokenizer.RoundL:
+		closeBracket = tokenizer.RoundR
+	case tokenizer.SquareL:
+		closeBracket = tokenizer.SquareR
+	case tokenizer.CurlyL:
+		closeBracket = tokenizer.CurlyR
 	}
 
-	return tokens
+	var depth = 0
+	return this.acceptUntilFunc(func(token tokenizer.Token) bool {
+		if token.Typ == closeBracket {
+			if depth == 0 {
+				return true
+			}
+
+			depth--
+		} else if token.Typ == openBracket {
+			depth++
+		}
+
+		return false
+	})
 }
 
 func (this *lexer) emitItem(typ itemType) {
@@ -153,7 +193,10 @@ func (this *lexer) emitBlock(typ blockType) {
 		Items: this.items,
 	}
 
-	this.items = make([]item, 0)
+	//? Reset the arrays length to 0, freeing up the slices contents
+	//? this doesnt make a new slice,
+	//? it just keeps the values there and marks those memory adresses as free to override
+	this.items = this.items[:0]
 	this.consume()
 }
 
@@ -163,7 +206,7 @@ func (this *lexer) emitBlock(typ blockType) {
 // highlighting the section between the current start and pos of the lexer
 func (this *lexer) getLocationHighlight() string {
 	var within = func(index int) bool {
-		return index >= this.start && index <= this.pos
+		return index >= this.start && index < this.pos
 	}
 
 	var stream []string = make([]string, len(this.tokens))
@@ -178,7 +221,7 @@ func (this *lexer) getLocationHighlight() string {
 	var str string = ""
 	for i, part := range stream {
 		if i > 0 && stream[i-1] != "\n" {
-			if within(i) {
+			if within(i-1) && within(i) {
 				str += color.InBlackOverWhite(" ")
 			} else {
 				str += " "

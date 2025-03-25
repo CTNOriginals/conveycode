@@ -12,6 +12,7 @@ type itemType int
 const (
 	_ itemType = iota
 
+	ItemText
 	Keyword
 	Value
 	Condition
@@ -23,6 +24,7 @@ const (
 
 func (this itemType) String() string {
 	return [...]string{
+		"ItemText",
 		"Keyword",
 		"Value",
 		"Condition",

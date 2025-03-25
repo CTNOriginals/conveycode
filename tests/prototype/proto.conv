@@ -1,13 +1,11 @@
-var str = "Hello \"World"
-var num = -12345.321e+123
-var hex = 0xff43DE
+// var str = "Hello \"World"
+// var num = -12345.321e+123
+// var hex = 0xff43DE
+// var x = num + hex
 
 if (num >= 10) {
 	print("z < 10 (", num, ")")
 }
 else if (num < 8) {
 	return
-}
-else {
-	print("z >= 10 (", num, ")")
 }

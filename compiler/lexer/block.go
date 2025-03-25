@@ -12,6 +12,8 @@ type blockType int
 const (
 	_ blockType = iota
 
+	BlockText
+
 	Assignment
 	Statement
 	Method
@@ -21,6 +23,7 @@ const (
 
 func (this blockType) String() string {
 	return [...]string{
+		"BlockText",
 		"Assignment",
 		"Statement",
 		"Method",
