@@ -8,16 +8,17 @@ import (
 type StateFn func(*lexer) StateFn
 
 var valueTokenTypes = []tokenizer.TokenType{tokenizer.String, tokenizer.Number, tokenizer.Text}
-var bracketTokenTypes = []tokenizer.TokenType{
-	tokenizer.RoundL,
-	tokenizer.SquareL,
-	tokenizer.CurlyL,
-	tokenizer.RoundR,
-	tokenizer.SquareR,
-	tokenizer.CurlyR,
-}
-var openBracketTokenTypes = bracketTokenTypes[:3]
-var closeBracketTokenTypes = bracketTokenTypes[3:]
+
+// var bracketTokenTypes = []tokenizer.TokenType{
+// 	tokenizer.RoundL,
+// 	tokenizer.SquareL,
+// 	tokenizer.CurlyL,
+// 	tokenizer.RoundR,
+// 	tokenizer.SquareR,
+// 	tokenizer.CurlyR,
+// }
+// var openBracketTokenTypes = bracketTokenTypes[:3]
+// var closeBracketTokenTypes = bracketTokenTypes[3:]
 
 func LexText(lx *lexer) StateFn {
 	for {

@@ -93,19 +93,19 @@ func (this *lexer) consume() {
 	this.start = this.pos
 }
 
-func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
-	if slices.Contains(valid, this.next().Typ) {
-		return true
-	}
+// func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
+// 	if slices.Contains(valid, this.next().Typ) {
+// 		return true
+// 	}
 
-	this.backup()
-	return false
-}
+// 	this.backup()
+// 	return false
+// }
 
-func (this *lexer) acceptRun(valid ...tokenizer.TokenType) {
-	for this.accept(valid...) {
-	}
-}
+// func (this *lexer) acceptRun(valid ...tokenizer.TokenType) {
+// 	for this.accept(valid...) {
+// 	}
+// }
 
 func (this *lexer) acceptContent(valid string) bool {
 	if string(this.next().Val) == valid {
