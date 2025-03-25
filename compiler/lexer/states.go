@@ -161,7 +161,7 @@ func lexCommand(lx *lexer) StateFn {
 		return lx.errorf("Unmatched bracket")
 	}
 
-	lx.emitItem(Scope)
+	lx.emitItem(Arguments)
 
 	lx.emitBlock(Instruction)
 
