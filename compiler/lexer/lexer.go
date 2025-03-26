@@ -9,6 +9,15 @@ import (
 	"github.com/TwiN/go-color"
 )
 
+// The lexer works like a curser.
+// In its normal state, the start and pos are the same value.
+// This is like a carrot cursor sitting in between characters without selecting any.
+// When the pos is greater then the start, thats when the cursor turns into a selection
+//
+// When the start is 0 and the pos is 0, the lexer doesnt have any content selected.
+// When the start is 0 and the pos is 1, the lexer is selecting the first token
+//
+// pos is the index of the next token, this token is not currently selected but will be after the next read
 type lexer struct {
 	Blocks chan block
 	tokens tokenizer.TokenList
@@ -41,45 +50,56 @@ func (this *lexer) run() {
 	this.items = nil
 }
 
-func (this *lexer) token() tokenizer.Token {
-	return this.tokens[this.pos]
-}
-
 func (this *lexer) length() int {
 	return this.pos - this.start
 }
 
-func (this *lexer) isEOF() bool {
-	return this.token().Typ == tokenizer.EOF
+func (this *lexer) peek() tokenizer.Token {
+	if this.isEOF() {
+		return tokenizer.Token{
+			Typ: tokenizer.EOF,
+		}
+	}
+	return this.tokens[this.pos]
 }
 
-func (this *lexer) next() (ret tokenizer.Token) {
-	ret = this.token()
+// The token that was read most recently
+func (this *lexer) current() tokenizer.Token {
+	return this.tokens[this.start+max(0, this.length()-1)]
+}
+
+func (this *lexer) isEOF() bool {
+	return this.pos >= len(this.tokens)
+}
+
+// Advances the position forward
+func (this *lexer) advance() {
+	this.pos++
+}
+
+// Reads the current token and advances the position conuming the token it returns
+func (this *lexer) read() (ret tokenizer.Token) {
+	ret = this.peek()
 
 	if this.isEOF() {
 		return
 	}
 
-	this.pos++
+	this.advance()
 	return ret
 }
 
-func (this *lexer) backup() {
-	if this.length() <= 0 {
-		this.errorf("Can not backup past start")
-		return
-	}
-	this.pos--
-}
+// func (this *lexer) peek() tokenizer.Token {
+// 	if this.pos+1 >= len(this.tokens) {
+// 		return tokenizer.Token{
+// 			Typ: tokenizer.EOF,
+// 		}
+// 	}
 
-func (this *lexer) peek() (tok tokenizer.Token) {
-	this.next()
-	tok = this.token()
-	this.backup()
-	return
-}
+// 	return this.tokens[this.pos]
+// }
 
-func (this *lexer) peekBack() (tok tokenizer.Token) {
+func (this *lexer) peekBack() tokenizer.Token {
 	if this.pos == 0 {
 		return tokenizer.Token{
 			Typ: tokenizer.EOF,
@@ -89,8 +109,23 @@ func (this *lexer) peekBack() (tok tokenizer.Token) {
 	return this.tokens[this.pos-1]
 }
 
+func (this *lexer) stream() (tokens []tokenizer.Token) {
+	return this.tokens[this.start:this.pos]
+}
+
 func (this *lexer) consume() {
 	this.start = this.pos
+}
+func (this *lexer) reset() {
+	this.pos = this.start
+}
+
+func (this *lexer) backup() {
+	if this.length() <= 0 {
+		this.errorf("Can not backup past start")
+		return
+	}
+	this.pos--
 }
 
 // func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
@@ -108,7 +143,7 @@ func (this *lexer) consume() {
 // }
 
 func (this *lexer) acceptContent(valid string) bool {
-	if string(this.next().Val) == valid {
+	if string(this.read().Val) == valid {
 		return true
 	}
 
@@ -116,21 +151,17 @@ func (this *lexer) acceptContent(valid string) bool {
 	return false
 }
 
-// Accept until f returns true
+// Accept until f returns true or EOF is reached
 func (this *lexer) acceptUntilFunc(f func(token tokenizer.Token) bool) bool {
 	for {
-		if this.isEOF() {
-			return false
-		}
-
-		if f(this.next()) {
-			return true
+		if f(this.read()) {
+			return !this.isEOF()
 		}
 	}
 }
 
 func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
-	var token = this.next()
+	var token = this.read()
 	if !slices.Contains(valid, token.Typ) {
 		var validString []string = make([]string, len(valid))
 
@@ -152,10 +183,6 @@ func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
 	}
 
 	return true, nil
-}
-
-func (this *lexer) stream() (tokens []tokenizer.Token) {
-	return this.tokens[this.start:this.pos]
 }
 
 func (this *lexer) wrapScope() bool {
@@ -208,7 +235,7 @@ func (this *lexer) emitBlock(typ blockType) {
 
 // Returns all the values of the tokens in sequence
 // highlighting the section between the current start and pos of the lexer
-func (this *lexer) getLocationHighlight() string {
+func (this *lexer) getLocationHighlight() (str string) {
 	var within = func(index int) bool {
 		return index >= this.start && index < this.pos
 	}
@@ -222,7 +249,10 @@ func (this *lexer) getLocationHighlight() string {
 		stream[i] = token.ColoredValue()
 	}
 
-	var str string = ""
+	if this.length() == 0 {
+		stream = slices.Insert(stream, this.start, color.InWhiteOverBlue("ⵊ"))
+	}
+
 	for i, part := range stream {
 		if i > 0 && stream[i-1] != "\n" {
 			if within(i-1) && within(i) {
@@ -232,7 +262,7 @@ func (this *lexer) getLocationHighlight() string {
 			}
 		}
 
-		if within(i) || (this.length() == 0 && i == this.pos) {
+		if within(i) {
 			str += color.InUnderline(color.WhiteBackground + part)
 		} else {
 			str += color.InUnderline(part)

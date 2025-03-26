@@ -21,9 +21,12 @@ var valueTokenTypes = []tokenizer.TokenType{tokenizer.String, tokenizer.Number, 
 // var openBracketTokenTypes = bracketTokenTypes[:3]
 // var closeBracketTokenTypes = bracketTokenTypes[3:]
 
+// fmt.Printf("--%d:%d --\n%s\n", lx.start, lx.pos, lx.getLocationHighlight())
+
 func LexText(lx *lexer) StateFn {
+
 	for {
-		var token = lx.next()
+		var token = lx.read()
 
 		if token.Typ == tokenizer.EOF {
 			break
@@ -43,6 +46,10 @@ func LexText(lx *lexer) StateFn {
 			case "else":
 				return lexElseStatement
 			}
+
+			if string(lx.peek().Val) == "=" {
+				return lexAssignment
+			}
 		}
 	}
 
@@ -50,12 +57,15 @@ func LexText(lx *lexer) StateFn {
 }
 
 func lexAssignment(lx *lexer) (state StateFn) {
-	lx.emitItem(Keyword)
+	if string(lx.current().Val) == "var" {
+		lx.emitItem(Keyword)
+	} else {
+		lx.reset()
+	}
 
 	if valid, err := lx.expect(tokenizer.Text); !valid {
 		return err
 	}
-
 	lx.emitItem(Identifier)
 
 	if valid, err := lx.expect(tokenizer.Operator); !valid {
@@ -64,7 +74,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 
 	lx.emitItem(Operator)
 
-	lx.acceptUntilFunc(func(token tokenizer.Token) bool {
+	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
 		var valueContent = append(valueTokenTypes, tokenizer.Operator)
 
 		if slices.Contains(valueContent, token.Typ) {
@@ -87,7 +97,9 @@ func lexAssignment(lx *lexer) (state StateFn) {
 		}
 
 		return true
-	})
+	}) {
+		lx.backup() //? Dont include the EOF
+	}
 
 	lx.emitItem(Value)
 

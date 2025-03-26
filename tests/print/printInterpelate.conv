@@ -1,5 +1,5 @@
 var x = "hello"
 var y = "world"
 
-$println(x, ", ", y, "!")
-$println(x ", " y "!")
+$print(x, ", ", y, "!")
+$print(x ", " y "!")
