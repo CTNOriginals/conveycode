@@ -19,6 +19,7 @@ const (
 	Method
 	BuiltIn
 
+	BlockEOF
 	BlockError
 )
 
@@ -29,6 +30,7 @@ func (this blockType) String() string {
 		"Statement",
 		"Method",
 		"BuiltIn",
+		"BlockEOF",
 		"BlockError",
 	}[this-1]
 }

@@ -1,8 +1,3 @@
 var x = 321
 var y = 123
-
 var z = x + y
-
-x = z - y
-y = z
-z = x * y

@@ -35,7 +35,7 @@ func Lex(tokens tokenizer.TokenList) (lx *lexer) {
 		State:  LexText,
 	}
 
-	return
+	return lx
 }
 
 func (this *lexer) NextBlock() Block {

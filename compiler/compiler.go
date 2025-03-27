@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"conveycode/compiler/lexer"
+	"conveycode/compiler/parser"
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
@@ -30,9 +31,20 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
 	var lx = lexer.Lex(tokens)
+	var blocks []lexer.Block
 
 	for lx.State != nil {
-		fmt.Print(lx.NextBlock())
+		var block = lx.NextBlock()
+		blocks = append(blocks, block)
+		fmt.Println(block)
+	}
+
+	var prs = parser.Parse(blocks)
+	var instruction, ok = <-prs.Channel
+
+	for ok {
+		fmt.Println(instruction)
+		instruction, ok = <-prs.Channel
 	}
 
 	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
