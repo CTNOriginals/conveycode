@@ -19,36 +19,48 @@ import (
 //
 // pos is the index of the next token, this token is not currently selected but will be after the next read
 type lexer struct {
-	Blocks chan block
 	tokens tokenizer.TokenList
+	Blocks chan Block
+	State  StateFn
 	items  []item
 	start  int
 	pos    int
 }
 
-func Lex(tokens tokenizer.TokenList) (ret lexer) {
-	ret = lexer{
+// #region Core
+func Lex(tokens tokenizer.TokenList) (lx *lexer) {
+	lx = &lexer{
 		tokens: tokens,
-		Blocks: make(chan block),
+		Blocks: make(chan Block, 2),
+		State:  LexText,
 	}
 
-	go ret.run()
-
-	return ret
+	return
 }
 
-func (this *lexer) run() {
-	var state StateFn
-	for state = LexText; state != nil; {
-		state = state(this)
+func (this *lexer) NextBlock() Block {
+	for {
+		select {
+		case block := <-this.Blocks:
+			return block
+		default:
+			//? Nil Pointer: If you explicitly assign nil to a pointer
+			//? and then try to dereference it, you’ll encounter the same error.
+			//? Ensure that your pointer is assigned a valid memory address before using it.
+			//* https://edwinsiby.medium.com/runtime-error-invalid-memory-address-or-nil-pointer-dereference-golang-dd4a58ab7536
+
+			var state StateFn = this.State
+
+			if state == nil {
+				this.State = nil
+			} else {
+				this.State = state(this)
+			}
+		}
 	}
-
-	close(this.Blocks)
-
-	//* Cleanup
-	this.tokens = nil
-	this.items = nil
 }
+
+//#endregion
 
 func (this *lexer) length() int {
 	return this.pos - this.start
@@ -219,7 +231,7 @@ func (this *lexer) emitItem(typ itemType) {
 	this.consume()
 }
 func (this *lexer) emitBlock(typ blockType) {
-	this.Blocks <- block{
+	this.Blocks <- Block{
 		Typ:   typ,
 		Items: this.items,
 	}
@@ -276,7 +288,7 @@ func (this *lexer) errorf(format string, args ...any) StateFn {
 	var message = fmt.Sprintf(color.InRed(format), args...)
 	message += fmt.Sprintf("\n-- %s %d:%d (%d) --\n%s", color.InYellow("LOCATION"), this.start, this.pos, this.length(), this.getLocationHighlight())
 
-	this.Blocks <- block{
+	this.Blocks <- Block{
 		Typ: BlockError,
 	}
 

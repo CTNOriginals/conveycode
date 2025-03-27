@@ -27,6 +27,7 @@ func LexText(lx *lexer) StateFn {
 
 	for {
 		var token = lx.read()
+		// fmt.Println(token)
 
 		if token.Typ == tokenizer.EOF {
 			break
@@ -175,7 +176,7 @@ func lexCommand(lx *lexer) StateFn {
 
 	lx.emitItem(Arguments)
 
-	lx.emitBlock(Instruction)
+	lx.emitBlock(BuiltIn)
 
 	return LexText
 }

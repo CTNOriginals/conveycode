@@ -15,9 +15,6 @@ import (
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InYellow(sourceFilePath))
 
-	// tools.CursorTests(utils.GetFileRunes(sourceFilePath))
-
-	/*instructions*/
 	var tokens tokenizer.TokenList = tokenizer.Tokenize(utils.GetFileRunes(sourceFilePath))
 
 	//? Debug logging
@@ -33,11 +30,9 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
 	var lx = lexer.Lex(tokens)
-	var block, ok = <-lx.Blocks
 
-	for ok {
-		fmt.Println(block.String())
-		block, ok = <-lx.Blocks
+	for lx.State != nil {
+		fmt.Print(lx.NextBlock())
 	}
 
 	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
