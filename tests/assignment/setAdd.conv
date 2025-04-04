@@ -5,4 +5,4 @@ var z = x + y
 
 x = z - y
 y = z
-z = x * y
+z = y * x

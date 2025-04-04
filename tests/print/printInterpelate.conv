@@ -2,4 +2,3 @@ var x = "hello"
 var y = "world"
 
 $print(x, ", ", y, "!")
-$print(x ", " y "!")

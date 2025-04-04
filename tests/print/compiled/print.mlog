@@ -1,0 +1,5 @@
+print "Hello "
+print "World\n"
+print "\n"
+print " \"Foo "
+print "Bar\" "

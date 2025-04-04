@@ -1,0 +1,6 @@
+set x "hello"
+set y "world"
+print x
+print ", "
+print y
+print "!"

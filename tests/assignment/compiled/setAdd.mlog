@@ -1,0 +1,6 @@
+set x 321
+set y 123
+op add z x y
+op sub x z y
+set y z
+op mul z y x
