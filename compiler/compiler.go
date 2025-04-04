@@ -39,12 +39,14 @@ func CompileFile(sourceFilePath string, dest string) {
 		fmt.Println(block)
 	}
 
+	fmt.Printf("\n\n-- %s --\n", color.InBlue("Parser"))
 	var prs = parser.Parse(blocks)
-	var instruction, ok = <-prs.Channel
+	// var instruction, ok = <-prs.Channel
 
-	for ok {
+	var instructions = prs.Construct()
+
+	for _, instruction := range instructions {
 		fmt.Println(instruction)
-		instruction, ok = <-prs.Channel
 	}
 
 	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)

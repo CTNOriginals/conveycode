@@ -7,10 +7,10 @@ import (
 	"github.com/TwiN/go-color"
 )
 
-type blockType int
+type BlockType int
 
 const (
-	_ blockType = iota
+	_ BlockType = iota
 
 	BlockText
 
@@ -23,7 +23,7 @@ const (
 	BlockError
 )
 
-func (this blockType) String() string {
+func (this BlockType) String() string {
 	return [...]string{
 		"BlockText",
 		"Assignment",
@@ -36,11 +36,11 @@ func (this blockType) String() string {
 }
 
 type Block struct {
-	Typ   blockType
+	Typ   BlockType
 	Items []item
 }
 
-func NewBlock(typ blockType) Block {
+func NewBlock(typ BlockType) Block {
 	return Block{
 		Typ: typ,
 	}
@@ -53,11 +53,3 @@ func (this Block) String() (str string) {
 	}
 	return fmt.Sprintf("%s\n %s", color.InBlue(color.Bold+this.Typ.String()), strings.Join(itemString, " "))
 }
-
-// func NewBlock(typ blockType) (ret block, ) {
-
-// }
-
-// func (this *block) construct(channel chan item) {
-
-// }

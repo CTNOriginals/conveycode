@@ -39,7 +39,7 @@ func Lex(tokens tokenizer.TokenList) (lx *lexer) {
 }
 
 func (this *lexer) NextBlock() Block {
-	for {
+	for this.State != nil {
 		select {
 		case block := <-this.Blocks:
 			return block
@@ -53,11 +53,14 @@ func (this *lexer) NextBlock() Block {
 
 			if state == nil {
 				this.State = nil
+				break
 			} else {
 				this.State = state(this)
 			}
 		}
 	}
+
+	return NewBlock(BlockEOF)
 }
 
 //#endregion
@@ -230,7 +233,7 @@ func (this *lexer) emitItem(typ itemType) {
 	this.items = append(this.items, NewItem(typ, this.stream()...))
 	this.consume()
 }
-func (this *lexer) emitBlock(typ blockType) {
+func (this *lexer) emitBlock(typ BlockType) {
 	this.Blocks <- Block{
 		Typ:   typ,
 		Items: this.items,
