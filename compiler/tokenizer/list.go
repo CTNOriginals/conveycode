@@ -29,6 +29,18 @@ func (this TokenList) Contains(typ TokenType) bool {
 	return false
 }
 
+func (this TokenList) FindTokenByType(typ TokenType) Token {
+	for _, token := range this {
+		if token.Typ == typ {
+			return token
+		}
+	}
+
+	return Token{
+		Typ: TokenError,
+	}
+}
+
 // Returns the stream of values contained in the list
 func (this TokenList) Stream() (str string) {
 	for _, token := range this {

@@ -43,10 +43,12 @@ func CompileFile(sourceFilePath string, dest string) {
 	var prs = parser.Parse(blocks)
 
 	var instructions = prs.Construct()
+	var instructionLines []string
 
 	for _, instruction := range instructions {
 		fmt.Println(instruction)
+		instructionLines = append(instructionLines, instruction.String())
 	}
 
-	// utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
+	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

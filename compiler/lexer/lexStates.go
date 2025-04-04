@@ -3,12 +3,11 @@ package lexer
 import (
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/types"
+	"conveycode/compiler/utils"
 	"slices"
 )
 
 type StateFn func(*lexer) StateFn
-
-var valueTokenTypes = []tokenizer.TokenType{tokenizer.String, tokenizer.Number, tokenizer.Text}
 
 // var bracketTokenTypes = []tokenizer.TokenType{
 // 	tokenizer.RoundL,
@@ -76,7 +75,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 	lx.emitItem(Operator)
 
 	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
-		var valueContent = append(valueTokenTypes, tokenizer.Operator)
+		var valueContent = append(tokenizer.ValueTokenTypes, tokenizer.Operator)
 
 		if slices.Contains(valueContent, token.Typ) {
 			return false
@@ -160,7 +159,7 @@ func lexElseStatement(lx *lexer) StateFn {
 }
 
 func lexCommand(lx *lexer) StateFn {
-	if !slices.Contains(types.Commands, string(lx.peekBack().Val)) {
+	if !slices.Contains(utils.Keys(types.Commands), string(lx.peekBack().Val)) {
 		return lx.errorf("Unknown command: %s", string(lx.peekBack().Val))
 	}
 

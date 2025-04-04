@@ -57,7 +57,7 @@ func (this Block) String() (str string) {
 // Finds and returns the first item of typ
 //
 // Returns new item of type ItemError if the typ was not present within this block
-func (this Block) FindItem(typ itemType) item {
+func (this Block) FindItemByType(typ itemType) item {
 	for _, item := range this.Items {
 		if item.Typ == typ {
 			return item

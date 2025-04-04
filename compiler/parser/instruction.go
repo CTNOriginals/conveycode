@@ -15,3 +15,7 @@ func NewInstruction(parts ...string) Instruction {
 func (this Instruction) String() string {
 	return strings.Join(this.Parts, " ")
 }
+
+func (this *Instruction) Push(parts ...string) {
+	this.Parts = append(this.Parts, parts...)
+}

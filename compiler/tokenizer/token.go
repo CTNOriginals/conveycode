@@ -8,6 +8,8 @@ import (
 
 type TokenType int
 
+var ValueTokenTypes = []TokenType{String, Number, Text}
+
 const (
 	_ TokenType = iota
 
