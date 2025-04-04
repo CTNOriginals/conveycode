@@ -1,6 +1,8 @@
 package tokenizer
 
-import "strings"
+import (
+	"strings"
+)
 
 type TokenList []Token
 
@@ -15,6 +17,16 @@ func (this TokenList) String() (str string) {
 	}
 
 	return strings.Join(list, "\n  ")
+}
+
+func (this TokenList) Contains(typ TokenType) bool {
+	for _, token := range this {
+		if token.Typ == typ {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Returns the stream of values contained in the list
@@ -64,4 +76,8 @@ func (this TokenList) ValuesAsString() (ret []string) {
 	}
 
 	return ret
+}
+
+func (this TokenList) JoinValues(seperator string) string {
+	return strings.Join(this.ValuesAsString(), seperator)
 }

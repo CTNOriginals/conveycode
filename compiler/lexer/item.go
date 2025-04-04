@@ -54,7 +54,3 @@ func NewItem(typ itemType, tokens ...tokenizer.Token) item {
 func (this item) String() string {
 	return fmt.Sprintf("%s\n  %s\n", color.InCyan(color.Bold+this.Typ.String()), this.Tokens.String())
 }
-
-func (this *item) push(token ...tokenizer.Token) {
-	this.Tokens = append(this.Tokens, token...)
-}

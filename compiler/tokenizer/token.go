@@ -28,6 +28,7 @@ const (
 
 	Text
 	EOF
+	TokenError
 )
 
 func (this TokenType) String() string {
@@ -49,6 +50,7 @@ func (this TokenType) String() string {
 
 		"Text",
 		"EOF",
+		"TokenError",
 	}[this-1]
 }
 

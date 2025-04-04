@@ -41,7 +41,6 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Parser"))
 	var prs = parser.Parse(blocks)
-	// var instruction, ok = <-prs.Channel
 
 	var instructions = prs.Construct()
 

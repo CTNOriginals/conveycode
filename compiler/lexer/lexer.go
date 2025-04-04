@@ -243,6 +243,7 @@ func (this *lexer) emitBlock(typ BlockType) {
 	//? this doesnt make a new slice,
 	//? it just keeps the values there and marks those memory adresses as free to override
 	this.items = this.items[:0]
+	this.items = make([]item, 0)
 	this.consume()
 }
 

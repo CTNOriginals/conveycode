@@ -53,3 +53,26 @@ func (this Block) String() (str string) {
 	}
 	return fmt.Sprintf("%s\n %s", color.InBlue(color.Bold+this.Typ.String()), strings.Join(itemString, " "))
 }
+
+// Finds and returns the first item of typ
+//
+// Returns new item of type ItemError if the typ was not present within this block
+func (this Block) FindItem(typ itemType) item {
+	for _, item := range this.Items {
+		if item.Typ == typ {
+			return item
+		}
+	}
+
+	return NewItem(ItemError)
+}
+
+func (this Block) GetItemsOfType(typ itemType) (items []item) {
+	for _, item := range this.Items {
+		if item.Typ == typ {
+			items = append(items, item)
+		}
+	}
+
+	return items
+}
