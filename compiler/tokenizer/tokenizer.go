@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"conveycode/compiler/utils"
 	"fmt"
 	"regexp"
 	"slices"
@@ -166,7 +167,9 @@ func init() {
 	slices.Sort(handlerKeys)
 }
 
-func Tokenize(content []rune) TokenList {
+func Tokenize(filePath string) TokenList {
+	var content = utils.GetFileRunes(filePath)
+
 	//? The tokens that are already identified in this line
 	var tokens TokenList = NewTokenList()
 
@@ -180,7 +183,7 @@ func Tokenize(content []rune) TokenList {
 
 			if hand.test == nil && hand.runes != nil {
 				if slices.Contains(hand.runes, cursor.Peek()) {
-					tokens.Push(typ, *cursor, cursor.Read())
+					tokens.Push(filePath, *cursor, typ, cursor.Read())
 					handled = true
 					break
 				}
@@ -189,7 +192,7 @@ func Tokenize(content []rune) TokenList {
 				handled = true
 
 				if val != nil {
-					tokens.Push(typ, *cursor, val...)
+					tokens.Push(filePath, *cursor, typ, val...)
 				}
 				break
 			}
@@ -210,10 +213,10 @@ func Tokenize(content []rune) TokenList {
 			continue
 		}
 
-		tokens.Push(Text, *cursor, stream...)
+		tokens.Push(filePath, *cursor, Text, stream...)
 	}
 
-	tokens.Push(EOF, *cursor, 0)
+	tokens.Push(filePath, *cursor, EOF, 0)
 
 	return tokens
 }

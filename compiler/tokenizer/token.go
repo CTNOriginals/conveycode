@@ -60,14 +60,16 @@ func (this TokenType) String() string {
 type Token struct {
 	Typ    TokenType
 	Val    []rune
+	File   string
 	Line   int
 	Column int
 }
 
-func NewToken(typ TokenType, val []rune, line int, col int) Token {
+func NewToken(file string, typ TokenType, val []rune, line int, col int) Token {
 	return Token{
 		Typ:    typ,
 		Val:    val,
+		File:   file,
 		Line:   line,
 		Column: col,
 	}

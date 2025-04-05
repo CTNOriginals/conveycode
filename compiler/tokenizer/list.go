@@ -68,14 +68,14 @@ func (this TokenList) ColoredStream() (str string) {
 	return str
 }
 
-func (this *TokenList) Push(typ TokenType, cursor Cursor, val ...rune) {
+func (this *TokenList) Push(file string, cursor Cursor, typ TokenType, val ...rune) {
 	var col = cursor.Column - len(string(val))
 
 	if cursor.EOF {
 		col++
 	}
 
-	*this = append(*this, NewToken(typ, val, cursor.Line, col))
+	*this = append(*this, NewToken(file, typ, val, cursor.Line, col))
 	// fmt.Println(NewToken(t, v))
 }
 
