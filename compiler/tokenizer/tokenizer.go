@@ -180,7 +180,7 @@ func Tokenize(content []rune) TokenList {
 
 			if hand.test == nil && hand.runes != nil {
 				if slices.Contains(hand.runes, cursor.Peek()) {
-					tokens.Push(typ, cursor.Read())
+					tokens.Push(typ, *cursor, cursor.Read())
 					handled = true
 					break
 				}
@@ -189,7 +189,7 @@ func Tokenize(content []rune) TokenList {
 				handled = true
 
 				if val != nil {
-					tokens.Push(typ, val...)
+					tokens.Push(typ, *cursor, val...)
 				}
 				break
 			}
@@ -210,10 +210,10 @@ func Tokenize(content []rune) TokenList {
 			continue
 		}
 
-		tokens.Push(Text, stream...)
+		tokens.Push(Text, *cursor, stream...)
 	}
 
-	tokens.Push(EOF, 0)
+	tokens.Push(EOF, *cursor, 0)
 
 	return tokens
 }

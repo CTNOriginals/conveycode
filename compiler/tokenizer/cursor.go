@@ -87,6 +87,8 @@ func (cur *Cursor) Seek(offset uint) bool {
 		if cur.Content[cur.Pos] == '\n' {
 			cur.Column = 1
 			cur.Line++
+		} else if cur.Content[cur.Pos] == '\t' {
+			cur.Column += 4 //?? I think 4 spaces per tab is default?
 		} else {
 			cur.Column++
 		}

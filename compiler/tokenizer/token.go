@@ -58,19 +58,23 @@ func (this TokenType) String() string {
 
 // #region Token
 type Token struct {
-	Typ TokenType
-	Val []rune
+	Typ    TokenType
+	Val    []rune
+	Line   int
+	Column int
 }
 
-func NewToken(t TokenType, v []rune) Token {
+func NewToken(typ TokenType, val []rune, line int, col int) Token {
 	return Token{
-		Typ: t,
-		Val: v,
+		Typ:    typ,
+		Val:    val,
+		Line:   line,
+		Column: col,
 	}
 }
 
 func (this Token) String() string {
-	return fmt.Sprintf("%s: %s", color.InGreen(this.Typ), string(this.Val))
+	return fmt.Sprintf("%s:%s %s: %s", color.InYellow(this.Line), color.InYellow(this.Column), color.InGreen(this.Typ), string(this.Val))
 }
 
 func (this Token) GetTypeColor() string {
