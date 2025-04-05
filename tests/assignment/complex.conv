@@ -4,5 +4,18 @@ var hex = 0xff43DE
 
 var z = x + y - (
 	(x / y) + 
-	(y * x - (6 % 5))
+	(y * x / x - (y % 5))
 ) + y - x
+
+// y % 5                # R0
+// y * x / x - LR0      # R1
+//   y * x              # -S0
+//   S0 / x             # -S1
+//   S1 - LR0           # -S2
+// (x / y)              # R2
+// LR2 + LR1            # R3
+// x + y - LR3 + y - x  #RET
+//   x + y              # -S0
+//   S0 - LR3           # -S1
+//   S1 + y             # -S2
+//   S2 - x             # -S3

@@ -18,7 +18,7 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	var tokens tokenizer.TokenList = tokenizer.Tokenize(utils.GetFileRunes(sourceFilePath))
 
-	//? Debug logging
+	//#region Tokenizer
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Tokenizer"))
 	for _, token := range tokens {
 		if token.Typ == tokenizer.EOL {
@@ -28,7 +28,9 @@ func CompileFile(sourceFilePath string, dest string) {
 
 		fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
 	}
+	//#endregion
 
+	//#region Lexer
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
 	var lx = lexer.Lex(tokens)
 	var blocks []lexer.Block
@@ -38,7 +40,9 @@ func CompileFile(sourceFilePath string, dest string) {
 		blocks = append(blocks, block)
 		fmt.Println(block)
 	}
+	//#endregion
 
+	//#region Parser
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Parser"))
 	var prs = parser.Parse(blocks)
 
@@ -49,6 +53,7 @@ func CompileFile(sourceFilePath string, dest string) {
 		fmt.Println(instruction)
 		instructionLines = append(instructionLines, instruction.String())
 	}
+	//#endregion
 
 	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
 }

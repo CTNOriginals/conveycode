@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -92,4 +93,9 @@ func (this TokenList) ValuesAsString() (ret []string) {
 
 func (this TokenList) JoinValues(seperator string) string {
 	return strings.Join(this.ValuesAsString(), seperator)
+}
+
+// type TokenList []Token
+func (this *TokenList) Remove(start int, count int) {
+	*this = slices.Delete(*this, start, start+count)
 }

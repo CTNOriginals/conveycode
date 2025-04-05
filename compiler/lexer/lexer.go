@@ -175,7 +175,22 @@ func (this *lexer) acceptUntilFunc(f func(token tokenizer.Token) bool) bool {
 	}
 }
 
-func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
+// func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
+// 	var token = this.read()
+// 	if !slices.Contains(valid, token.Typ) {
+// 		var validString []string = make([]string, len(valid))
+
+// 		for i, typ := range valid {
+// 			validString[i] = typ.String()
+// 		}
+
+// 		return false, this.errorf("expected type [%s] but found %s", strings.Join(validString, ", "), token.String())
+// 	}
+
+// 	return true, nil
+// }
+
+func (this *lexer) expect(valid ...tokenizer.TokenType) {
 	var token = this.read()
 	if !slices.Contains(valid, token.Typ) {
 		var validString []string = make([]string, len(valid))
@@ -184,21 +199,17 @@ func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
 			validString[i] = typ.String()
 		}
 
-		return false, this.errorf("expected type [%s] but found %s", strings.Join(validString, ", "), token.String())
+		panic(this.errorf("expected type [%s] but found %s", strings.Join(validString, ", "), token.String()))
 	}
-
-	return true, nil
 }
 
-func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
-	for _, valid := range seq {
-		if valid, err := this.expect(valid...); !valid {
-			return false, err
-		}
-	}
+// func (this *lexer) expectSequence(seq [][]tokenizer.TokenType) (bool, StateFn) {
+// 	for _, valid := range seq {
+// 		this.expect(valid...);
+// 	}
 
-	return true, nil
-}
+// 	return true, nil
+// }
 
 func (this *lexer) wrapScope() bool {
 	var openBracket = this.peekBack().Typ

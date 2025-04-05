@@ -57,21 +57,22 @@ func LexText(lx *lexer) StateFn {
 }
 
 func lexAssignment(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
 	if string(lx.current().Val) == "var" {
 		lx.emitItem(Keyword)
 	} else {
 		lx.reset()
 	}
 
-	if valid, err := lx.expect(tokenizer.Text); !valid {
-		return err
-	}
+	lx.expect(tokenizer.Text)
 	lx.emitItem(Identifier)
 
-	if valid, err := lx.expect(tokenizer.Operator); !valid {
-		return err
-	}
-
+	lx.expect(tokenizer.Operator)
 	lx.emitItem(Operator)
 
 	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
@@ -111,9 +112,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 func lexIfStatement(lx *lexer) StateFn {
 	lx.emitItem(Keyword)
 
-	if valid, err := lx.expect(tokenizer.RoundL); !valid {
-		return err
-	}
+	lx.expect(tokenizer.RoundL)
 
 	if !lx.wrapScope() {
 		return lx.errorf("Unmatched bracket for conditional statement")
@@ -121,9 +120,7 @@ func lexIfStatement(lx *lexer) StateFn {
 
 	lx.emitItem(Condition)
 
-	if valid, err := lx.expect(tokenizer.CurlyL); !valid {
-		return err
-	}
+	lx.expect(tokenizer.CurlyL)
 
 	if !lx.wrapScope() {
 		return lx.errorf("Unmatched bracket for statement scope")
@@ -143,9 +140,7 @@ func lexElseStatement(lx *lexer) StateFn {
 
 	lx.emitItem(Keyword)
 
-	if valid, err := lx.expect(tokenizer.CurlyL); !valid {
-		return err
-	}
+	lx.expect(tokenizer.CurlyL)
 
 	if !lx.wrapScope() {
 		return lx.errorf("Unmatched bracket for statement scope")
@@ -165,9 +160,7 @@ func lexCommand(lx *lexer) StateFn {
 
 	lx.emitItem(Command)
 
-	if valid, err := lx.expect(tokenizer.RoundL); !valid {
-		return err
-	}
+	lx.expect(tokenizer.RoundL)
 
 	if !lx.wrapScope() {
 		return lx.errorf("Unmatched bracket")
