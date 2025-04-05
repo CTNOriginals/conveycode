@@ -1,0 +1,18 @@
+func func3() {
+	$print("func3")
+	return 8
+}
+
+func func1() {
+	$print("func1")
+	var x = func3()
+
+	func func2(num) {
+		$print("func2: ", num)
+	}
+
+	func2(x)
+}
+
+func1()
+$flush("message1")

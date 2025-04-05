@@ -1,0 +1,20 @@
+set x 3
+set y 5
+op add z x y
+
+print z
+
+jump if0true greaterThanEq 10 z
+
+print "z >= 10 ("
+print z
+print ")"
+jump exit always
+
+if0true:
+print "z < 10 ("
+print z
+print ")"
+
+exit:
+printflush message1
