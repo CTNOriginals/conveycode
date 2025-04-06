@@ -8,13 +8,12 @@ import (
 
 type TokenType int
 
-var ValueTokenTypes = []TokenType{String, Number, Text}
-
 const (
 	_ TokenType = iota
 
 	EOL
 	Comment
+	Boolean
 	String
 	Number
 	Operator
@@ -37,6 +36,7 @@ func (this TokenType) String() string {
 	return [...]string{
 		"EOL",
 		"Comment",
+		"Boolean",
 		"String",
 		"Number",
 		"Operator",
@@ -55,6 +55,8 @@ func (this TokenType) String() string {
 		"TokenError",
 	}[this-1]
 }
+
+var ValueTokenTypes = []TokenType{String, Number, Boolean, Text}
 
 // #region Token
 type Token struct {

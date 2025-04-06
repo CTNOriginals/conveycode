@@ -57,6 +57,16 @@ var handlers = handlerMap{
 			})
 		},
 	},
+	Boolean: {
+		test: func(cursor *Cursor) bool {
+			//?? There must be a better way to detect this right? this is a bit hacky
+			return (cursor.Peek() == 't' && string(cursor.PeekRange(4)) == "true") || (cursor.Peek() == 'f' && string(cursor.PeekRange(5)) == "false")
+		},
+		handle: func(cursor *Cursor) (v []rune) {
+			var length = utils.If(cursor.Peek() == 't', 4, 5)
+			return cursor.ReadN(length)
+		},
+	},
 	String: {
 		test: func(cursor *Cursor) bool {
 			return slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\'

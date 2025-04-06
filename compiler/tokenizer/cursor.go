@@ -123,6 +123,15 @@ func (cur *Cursor) PeekPrev() rune {
 	return cur.PeekOffset(-1)
 }
 
+// Returns all characters between the current position and the position + lenth
+func (cur *Cursor) PeekRange(length int) (stream []rune) {
+	for i := range length {
+		stream = append(stream, cur.PeekOffset(i))
+	}
+
+	return stream
+}
+
 // Returns the current character and consumes it
 func (cur *Cursor) Read() (char rune) {
 	if cur.EOF {
