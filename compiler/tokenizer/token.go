@@ -19,6 +19,7 @@ const (
 	Operator
 	Seperator
 	Command
+	Link
 
 	RoundL
 	RoundR
@@ -42,6 +43,7 @@ func (this TokenType) String() string {
 		"Operator",
 		"Seperator",
 		"Command",
+		"Link",
 
 		"RoundL",
 		"RoundR",
@@ -56,7 +58,7 @@ func (this TokenType) String() string {
 	}[this-1]
 }
 
-var ValueTokenTypes = []TokenType{String, Number, Boolean, Text}
+var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Text}
 
 // #region Token
 type Token struct {

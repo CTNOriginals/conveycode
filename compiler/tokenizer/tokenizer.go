@@ -149,6 +149,19 @@ var handlers = handlerMap{
 		},
 	},
 
+	Link: {
+		test: func(cursor *Cursor) bool {
+			return cursor.Peek() == '@'
+		},
+		handle: func(cursor *Cursor) (v []rune) {
+			cursor.Read()
+
+			return cursor.ReadUntilFunc(func(c rune) bool {
+				return !regStream.MatchString(string(c))
+			})
+		},
+	},
+
 	Operator: {
 		test: func(cursor *Cursor) bool {
 			return cursor.ContainsChar("+-*/%=><!&|")
