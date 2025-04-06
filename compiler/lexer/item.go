@@ -54,3 +54,24 @@ func NewItem(typ itemType, tokens ...tokenizer.Token) item {
 func (this item) String() string {
 	return fmt.Sprintf("%s\n  %s\n", color.InCyan(color.Bold+this.Typ.String()), this.Tokens.String())
 }
+
+// Returns all token values joint into a string without seperator
+//
+// This is mostly useful for items that usually only contain one token
+func (this item) ValueString() string {
+	return this.Tokens.JoinValues("")
+}
+
+func (this item) Compare(other item) bool {
+	return this.Typ == other.Typ && this.ValueString() == other.ValueString()
+}
+
+func (this item) ItemFile() string {
+	return this.Tokens[0].File
+}
+func (this item) ItemLine() int {
+	return this.Tokens[0].Line
+}
+func (this item) ItemColumn() int {
+	return this.Tokens[0].Column
+}

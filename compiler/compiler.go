@@ -16,10 +16,10 @@ import (
 func CompileFile(sourceFilePath string, dest string) {
 	fmt.Printf("File %s\n", color.InYellow(sourceFilePath))
 
-	var tokens tokenizer.TokenList = tokenizer.Tokenize(utils.GetFileRunes(sourceFilePath))
+	var tokens tokenizer.TokenList = tokenizer.Tokenize(sourceFilePath)
 
 	//#region Tokenizer
-	fmt.Printf("\n\n-- %s --\n", color.InBlue("Tokenizer"))
+	fmt.Printf("\n-- %s --\n", color.InBlue("Tokenizer"))
 	for _, token := range tokens {
 		if token.Typ == tokenizer.EOL {
 			fmt.Println("")
@@ -43,10 +43,10 @@ func CompileFile(sourceFilePath string, dest string) {
 	//#endregion
 
 	//#region Parser
-	fmt.Printf("\n\n-- %s --\n", color.InBlue("Parser"))
-	var prs = parser.Parse(blocks)
+	fmt.Printf("-- %s --\n", color.InBlue("Parser"))
+	var prs = parser.Parse(blocks, &parser.GlobalScope)
 
-	var instructions = prs.Construct()
+	var instructions = parser.Construct(prs)
 	var instructionLines []string
 
 	for _, instruction := range instructions {

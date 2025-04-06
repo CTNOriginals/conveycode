@@ -76,3 +76,24 @@ func (this Block) GetItemsOfType(typ itemType) (items []item) {
 
 	return items
 }
+
+// Returns the line number this block starts on
+func (this Block) BlockLine() int {
+	return this.Items[0].Tokens[0].Line
+}
+
+// Returns the column number this block starts on
+func (this Block) BlockColumn() int {
+	return this.Items[0].Tokens[0].Column
+}
+
+func (this Block) GetErrorPrefix(col int) string {
+	return fmt.Sprintf(color.InRed("ERROR %s:%s:"), color.InYellow(this.BlockLine()), color.InYellow(col))
+}
+
+func (this Block) ErrorF(sourceItem item, format string, args ...any) string {
+	var message = fmt.Sprintf(format, args...)
+	var location = fmt.Sprintf("%s:%s:%s", color.InCyan(sourceItem.ItemFile()), color.InYellow(sourceItem.ItemLine()), color.InYellow(sourceItem.ItemColumn()))
+
+	return fmt.Sprintf("%s\n\t%s", message, location)
+}

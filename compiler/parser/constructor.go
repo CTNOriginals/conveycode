@@ -5,29 +5,53 @@ import (
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/types"
 	"fmt"
+	"runtime"
 	"slices"
 
 	"github.com/TwiN/go-color"
 )
 
-type Constructor = func(block lexer.Block) (instructions []Instruction)
+type Constructor = func(block lexer.Block, scope *Scope) (instructions []Instruction)
 
 type ConstructorMap = map[lexer.BlockType]Constructor
 
 var constructors = ConstructorMap{
-	lexer.Assignment: func(block lexer.Block) (instructions []Instruction) {
+	lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 		var prefix = "set"
-		var ident = block.FindItemByType(lexer.Identifier)
-		var item = block.FindItemByType(lexer.Value)
+		var itemIdent = block.FindItemByType(lexer.Identifier)
+		var itemValue = block.FindItemByType(lexer.Value)
 
-		//- Is the value a calculation of some sort?
-		if item.Tokens.Contains(tokenizer.Operator) {
-			return mathValueAssignment(block)
+		if block.FindItemByType(lexer.Keyword).Typ != lexer.ItemError {
+			if scope.ContainsVariable(block) {
+				panic(scope.DuplicateVariable(block))
+			} else {
+				scope.PushVariable(block)
+			}
+		} else if !scope.ContainsVariable(block) {
+			panic(scope.UndeclaredVariable(block))
 		}
 
-		return []Instruction{NewInstruction(prefix, ident.Tokens.JoinValues(""), item.Tokens.JoinValues(" "))}
+		//- Is the value a math operation of some sort?
+		if itemValue.Tokens.Contains(tokenizer.Operator) {
+			for i, token := range itemValue.Tokens {
+				if token.Typ == tokenizer.Operator {
+					ope, ok := types.MathOperators[string(token.Val)]
+
+					if !ok {
+						fmt.Printf(color.InRed("Math operator '%s' is not yet defined in MathOperatorStrings\n"), string(token.Val))
+						continue
+					}
+
+					instructions = append(instructions, NewInstruction("op", ope, itemIdent.Tokens.JoinValues(""), string(itemValue.Tokens[i-1].Val), string(itemValue.Tokens[i+1].Val)))
+				}
+			}
+
+			return instructions
+		}
+
+		return []Instruction{NewInstruction(prefix, itemIdent.Tokens.JoinValues(""), itemValue.Tokens.JoinValues(" "))}
 	},
-	lexer.BuiltIn: func(block lexer.Block) (instructions []Instruction) {
+	lexer.BuiltIn: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 		var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
 		var args = block.FindItemByType(lexer.Arguments)
 
@@ -43,24 +67,31 @@ var constructors = ConstructorMap{
 
 		return instructions
 	},
+	lexer.Statement: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+
+		return instructions
+	},
 }
 
-func mathValueAssignment(block lexer.Block) (instructions []Instruction) {
-	var itemIdent = block.FindItemByType(lexer.Identifier)
-	var itemValue = block.FindItemByType(lexer.Value)
-
-	//TODO Support multy math operations, like z = x + (2 * y) - 4
-	for i, token := range itemValue.Tokens {
-		if token.Typ == tokenizer.Operator {
-			ope, ok := types.MathOperators[string(token.Val)]
-
-			if !ok {
-				fmt.Printf(color.InRed("Math operator '%s' is not yet defined in MathOperatorStrings\n"), string(token.Val))
-				continue
-			}
-
-			instructions = append(instructions, NewInstruction("op", ope, itemIdent.Tokens.JoinValues(""), string(itemValue.Tokens[i-1].Val), string(itemValue.Tokens[i+1].Val)))
+func Construct(prs *parser) (instructions []Instruction) {
+	defer func() {
+		if errMsg := recover(); errMsg != nil {
+			fmt.Println(errMsg)
+			buf := make([]byte, 1<<16)
+			runtime.Stack(buf, false)
+			fmt.Printf("%s", buf)
 		}
+	}()
+
+	for _, block := range prs.blocks {
+		var constructor, ok = constructors[block.Typ]
+
+		//- Does the block type have a constructor defined
+		if !ok {
+			continue
+		}
+
+		instructions = append(instructions, constructor(block, prs.scope)...)
 	}
 
 	return instructions

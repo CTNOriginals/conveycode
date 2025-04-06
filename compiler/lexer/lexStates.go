@@ -103,7 +103,6 @@ func lexAssignment(lx *lexer) (state StateFn) {
 	}
 
 	lx.emitItem(Value)
-
 	lx.emitBlock(Assignment)
 
 	return LexText
