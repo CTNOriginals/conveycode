@@ -32,12 +32,10 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	//#region Lexer
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
-	var lx = lexer.Lex(tokens)
-	var blocks []lexer.Block
+	var lx = lexer.Lex(tokens, lexer.LexText)
+	var blocks []lexer.Block = lx.Construct()
 
-	for lx.State != nil {
-		var block = lx.NextBlock()
-		blocks = append(blocks, block)
+	for _, block := range blocks {
 		fmt.Println(block)
 	}
 	//#endregion

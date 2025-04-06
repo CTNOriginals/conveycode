@@ -10,6 +10,17 @@ var MathOperators = syntaxMap{
 	"%": "mod",
 }
 
+var Comparator = syntaxMap{
+	"==":  "equal",
+	"!=":  "notEqual",
+	"<":   "lessThan",
+	"<=":  "lessThanEq",
+	">":   "greaterThan",
+	">=":  "greaterThanEq",
+	"===": "strictEqual",
+	// "true": "always", //?? Should this be included?
+}
+
 var Commands = syntaxMap{
 	"print": "print",
 	"flush": "printflush",

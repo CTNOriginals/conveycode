@@ -1,0 +1,24 @@
+var x = 1
+var y = 0
+
+if (x == y) {
+	$print("==")
+}
+if (x === y) {
+	$print("===")
+}
+if (x != y) {
+	$print("!=")
+}
+if (x > y) {
+	$print(">")
+}
+if (x < y) {
+	$print("<")
+}
+if (x >= y) {
+	$print(">=")
+}
+if (x <= y) {
+	$print("<=")
+}

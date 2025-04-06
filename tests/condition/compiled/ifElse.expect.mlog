@@ -4,17 +4,13 @@ op add z x y
 
 print z
 
-jump if0true greaterThanEq 10 z
+jump if0 greaterThanEq 10 z
+print true
+jump if0end always
 
-print "z >= 10 ("
-print z
-print ")"
-jump exit always
+if0t:
+print false
 
-if0true:
-print "z < 10 ("
-print z
-print ")"
+if0end:
 
-exit:
 printflush message1

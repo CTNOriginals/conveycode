@@ -14,6 +14,7 @@ var testCases [][]string = [][]string{
 	// {"tests/print/printInterpelate.conv", "tests/print/compiled/"},
 	// {"tests/condition/if.conv", "tests/condition/compiled/"},
 	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
+	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
 	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
 }
 
