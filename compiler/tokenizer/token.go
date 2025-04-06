@@ -87,10 +87,14 @@ func (this Token) GetTypeColor() string {
 		return color.Red
 	case Number:
 		return color.Green
-	case Operator:
+	case Boolean:
 		return color.Blue
-	case Seperator:
+	case Operator:
 		return color.Cyan
+	case Command:
+		return color.Purple
+	case Seperator:
+		return color.Gray
 	case RoundL, RoundR, SquareL, SquareR, CurlyL, CurlyR:
 		return color.Yellow
 	}
