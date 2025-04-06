@@ -1,8 +1,8 @@
 package lexer
 
 import (
+	"conveycode/compiler/syntax"
 	"conveycode/compiler/tokenizer"
-	"conveycode/compiler/types"
 	"conveycode/compiler/utils"
 	"slices"
 )
@@ -169,7 +169,7 @@ func lexElseStatement(lx *lexer) StateFn {
 }
 
 func lexCommand(lx *lexer) StateFn {
-	if !slices.Contains(utils.Keys(types.Commands), string(lx.peekBack().Val)) {
+	if !slices.Contains(utils.Keys(syntax.Commands), string(lx.peekBack().Val)) {
 		return lx.errorf("Unknown command: %s", string(lx.peekBack().Val))
 	}
 

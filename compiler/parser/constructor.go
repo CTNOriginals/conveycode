@@ -2,8 +2,8 @@ package parser
 
 import (
 	"conveycode/compiler/lexer"
+	"conveycode/compiler/syntax"
 	"conveycode/compiler/tokenizer"
-	"conveycode/compiler/types"
 	"fmt"
 	"runtime"
 	"slices"
@@ -35,7 +35,7 @@ var constructors = ConstructorMap{
 		if itemValue.Tokens.Contains(tokenizer.Operator) {
 			for i, token := range itemValue.Tokens {
 				if token.Typ == tokenizer.Operator {
-					ope, ok := types.MathOperators[string(token.Val)]
+					ope, ok := syntax.MathOperators[string(token.Val)]
 
 					if !ok {
 						fmt.Printf(color.InRed("Math operator '%s' is not yet defined in MathOperatorStrings\n"), string(token.Val))
@@ -55,11 +55,11 @@ var constructors = ConstructorMap{
 		var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
 		var args = block.FindItemByType(lexer.Arguments)
 
-		instructions = append(instructions, NewInstruction(types.Commands[command]))
+		instructions = append(instructions, NewInstruction(syntax.Commands[command]))
 
 		for _, token := range args.Tokens {
 			if token.Typ == tokenizer.Seperator {
-				instructions = append(instructions, NewInstruction(types.Commands[command]))
+				instructions = append(instructions, NewInstruction(syntax.Commands[command]))
 			} else if slices.Contains(tokenizer.ValueTokenTypes, token.Typ) {
 				instructions[len(instructions)-1].Push(string(token.Val))
 			}
