@@ -56,6 +56,15 @@ func LexText(lx *lexer) StateFn {
 	return nil
 }
 
+//#region Public
+
+// func LexCondition(lx *lexer) (state StateFn) {
+
+// 	return nil
+// }
+
+//#endregion
+
 func lexAssignment(lx *lexer) (state StateFn) {
 	defer func() {
 		if recover() != nil {
@@ -126,6 +135,13 @@ func lexIfStatement(lx *lexer) StateFn {
 	}
 
 	lx.emitItem(Scope)
+
+	if lx.accept(tokenizer.EOL) {
+		lx.consume()
+	}
+	if lx.acceptContent("else") {
+		return lexElseStatement
+	}
 
 	lx.emitBlock(Statement)
 

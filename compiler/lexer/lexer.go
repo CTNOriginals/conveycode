@@ -28,11 +28,11 @@ type lexer struct {
 }
 
 // #region Core
-func Lex(tokens tokenizer.TokenList) (lx *lexer) {
+func Lex(tokens tokenizer.TokenList, context StateFn) (lx *lexer) {
 	lx = &lexer{
 		tokens: tokens,
 		Blocks: make(chan Block, 2),
-		State:  LexText,
+		State:  context,
 	}
 
 	return lx
@@ -61,6 +61,15 @@ func (this *lexer) NextBlock() Block {
 	}
 
 	return NewBlock(BlockEOF)
+}
+
+func (this *lexer) Construct() (blocks []Block) {
+	for this.State != nil {
+		var block = this.NextBlock()
+		blocks = append(blocks, block)
+	}
+
+	return blocks
 }
 
 //#endregion
@@ -143,14 +152,14 @@ func (this *lexer) backup() {
 	this.pos--
 }
 
-// func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
-// 	if slices.Contains(valid, this.next().Typ) {
-// 		return true
-// 	}
+func (this *lexer) accept(valid ...tokenizer.TokenType) bool {
+	if slices.Contains(valid, this.read().Typ) {
+		return true
+	}
 
-// 	this.backup()
-// 	return false
-// }
+	this.backup()
+	return false
+}
 
 // func (this *lexer) acceptRun(valid ...tokenizer.TokenType) {
 // 	for this.accept(valid...) {
