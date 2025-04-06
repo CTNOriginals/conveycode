@@ -2,6 +2,7 @@ package main
 
 import (
 	"conveycode/compiler"
+	"conveycode/compiler/parser"
 	"fmt"
 	"time"
 
@@ -9,12 +10,12 @@ import (
 )
 
 var testCases [][]string = [][]string{
-	// {"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
-	// {"tests/print/print.conv", "tests/print/compiled/"},
-	// {"tests/print/printInterpelate.conv", "tests/print/compiled/"},
-	// {"tests/condition/if.conv", "tests/condition/compiled/"},
-	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
-	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
+	{"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
+	{"tests/print/print.conv", "tests/print/compiled/"},
+	{"tests/print/printInterpelate.conv", "tests/print/compiled/"},
+	{"tests/condition/if.conv", "tests/condition/compiled/"},
+	{"tests/condition/ifElse.conv", "tests/condition/compiled/"},
+	{"tests/condition/conditions.conv", "tests/condition/compiled/"},
 	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
 }
 
@@ -22,6 +23,7 @@ func main() {
 	fmt.Printf("\n\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
 
 	for _, testCase := range testCases {
+		parser.InitializeScope()
 		compiler.CompileFile(testCase[0], testCase[1])
 	}
 }

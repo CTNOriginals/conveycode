@@ -14,7 +14,7 @@ import (
 //
 //	compiler.CompileFile("foo/bar/file.conv", "dest/")
 func CompileFile(sourceFilePath string, dest string) {
-	fmt.Printf("File %s\n", color.InYellow(sourceFilePath))
+	fmt.Printf("\n\n-- %s %s --\n", color.InGreen("File"), color.InYellow(sourceFilePath))
 
 	var tokens tokenizer.TokenList = tokenizer.Tokenize(sourceFilePath)
 
@@ -32,7 +32,7 @@ func CompileFile(sourceFilePath string, dest string) {
 
 	//#region Lexer
 	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
-	var lx = lexer.Lex(tokens, lexer.LexText)
+	var lx = lexer.Lex(tokens)
 	var blocks []lexer.Block = lx.Construct()
 
 	for _, block := range blocks {

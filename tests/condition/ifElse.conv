@@ -1,14 +1,13 @@
-var x = 3
-var y = 5
-var z = x + y
-
-$print(z)
+var x = 8
 
 if (z >= 10) {
-	$print("z >= 10 (", z, ")")
+	$print(true)
+}
+else if (x == 8) {
+	$print(x)
 }
 else {
-	$print("z < 10 (", z, ")")
+	$print(false)
 }
 
 $flush("message1")

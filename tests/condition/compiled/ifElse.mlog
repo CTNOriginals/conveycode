@@ -1,5 +1,12 @@
-set x 3
-set y 5
-op add z x y
-print z
+set x 8
+jump global0_statement3 greaterThanEq z 10
+jump global0_statement2 equal x 8
+print false
+jump global0_statement1 always
+global0_statement2:
+print x
+jump global0_statement1 always
+global0_statement3:
+print true
+global0_statement1:
 printflush "message1"

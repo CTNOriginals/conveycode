@@ -2,4 +2,10 @@ set x 3
 set y 8
 op add z x y
 print z
+jump global0_statement1 greaterThanEq z 10
+global0_statement1:
+print "z < 10 ("
+print z
+print ")"
+global0_statement1:
 printflush "message1"

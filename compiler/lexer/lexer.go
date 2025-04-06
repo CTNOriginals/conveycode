@@ -28,11 +28,11 @@ type lexer struct {
 }
 
 // #region Core
-func Lex(tokens tokenizer.TokenList, context StateFn) (lx *lexer) {
+func Lex(tokens tokenizer.TokenList) (lx *lexer) {
 	lx = &lexer{
 		tokens: tokens,
 		Blocks: make(chan Block, 2),
-		State:  context,
+		State:  LexText,
 	}
 
 	return lx

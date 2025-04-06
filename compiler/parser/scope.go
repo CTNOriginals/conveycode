@@ -12,26 +12,44 @@ type scopeContext string
 const (
 	_ scopeContext = ""
 
-	Global          = "global"
-	IfStatement     = "if"
-	ElseIfStatement = "elseif"
-	ElseStatement   = "else"
-	ForLoop         = "for"
-	WhileLoop       = "while"
-	Method          = "method"
+	Global    = "global"
+	Statement = "statement"
+	Method    = "method"
 )
 
 type Scope struct {
-	context      scopeContext
-	Instructions []Instruction
-	Variables    []lexer.Block
-	Methods      []string
-	Children     []Scope
+	id        int
+	context   scopeContext
+	Variables []lexer.Block
+	Methods   []string
+	Children  []Scope
 	//?? parent? string
 }
 
-var GlobalScope = Scope{
-	context: Global,
+var scopeCount int
+var GlobalScope Scope
+
+func GetScopeID() (id int) {
+	id = scopeCount
+	scopeCount += 1
+	return id
+}
+
+func InitializeScope() {
+	GlobalScope.Clear()
+
+	scopeCount = 0
+	GlobalScope = Scope{
+		id:      GetScopeID(),
+		context: Global,
+	}
+}
+
+func NewScope(context scopeContext) Scope {
+	return Scope{
+		id:      GetScopeID(),
+		context: context,
+	}
 }
 
 func (this *Scope) PushVariable(blocks ...lexer.Block) {
@@ -59,6 +77,15 @@ func (this Scope) GetVariableByIdentifier(ident string) lexer.Block {
 	}
 
 	return lexer.NewBlock(lexer.BlockError)
+}
+
+// Clean up all memory contained in the scope
+func (this *Scope) Clear() {
+	this.Variables = this.Variables[:0]
+	this.Methods = this.Methods[:0]
+	for _, child := range this.Children {
+		child.Clear()
+	}
 }
 
 // #region Error Logging
