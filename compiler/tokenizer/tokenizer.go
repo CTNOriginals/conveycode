@@ -149,7 +149,25 @@ var handlers = handlerMap{
 		},
 	},
 
-	Operator:  {test: nil, handle: nil, runes: []rune{'+', '-', '*', '/', '%', '=', '>', '<', '!', '&', '|'}},
+	Operator: {
+		test: func(cursor *Cursor) bool {
+			return cursor.ContainsChar("+-*/%=><!&|")
+		},
+		handle: func(cursor *Cursor) []rune {
+			var num = 1
+
+			if cursor.ContainsChar("=><!|&") && strings.ContainsRune("=><!|&", cursor.PeekNext()) {
+				if cursor.Peek() == '=' && cursor.PeekNext() == '=' && cursor.PeekOffset(2) == '=' {
+					num = 3
+				} else {
+					num = 2
+				}
+			}
+
+			return cursor.ReadN(num)
+		},
+	},
+
 	Seperator: {test: nil, handle: nil, runes: []rune{','}},
 	RoundL:    {test: nil, handle: nil, runes: []rune{'('}},
 	RoundR:    {test: nil, handle: nil, runes: []rune{')'}},
