@@ -17,6 +17,7 @@ const (
 	Assignment
 	Statement
 	Method
+	Call
 	BuiltIn
 
 	BlockEOF
@@ -29,6 +30,7 @@ func (this BlockType) String() string {
 		"Assignment",
 		"Statement",
 		"Method",
+		"Call",
 		"BuiltIn",
 		"BlockEOF",
 		"BlockError",

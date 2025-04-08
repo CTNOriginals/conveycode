@@ -9,24 +9,11 @@ import (
 
 type StateFn func(*lexer) StateFn
 
-// var bracketTokenTypes = []tokenizer.TokenType{
-// 	tokenizer.RoundL,
-// 	tokenizer.SquareL,
-// 	tokenizer.CurlyL,
-// 	tokenizer.RoundR,
-// 	tokenizer.SquareR,
-// 	tokenizer.CurlyR,
-// }
-// var openBracketTokenTypes = bracketTokenTypes[:3]
-// var closeBracketTokenTypes = bracketTokenTypes[3:]
-
 // fmt.Printf("--%d:%d --\n%s\n", lx.start, lx.pos, lx.getLocationHighlight())
 
-func LexText(lx *lexer) StateFn {
-
+func LexText(lx *lexer) (state StateFn) {
 	for {
 		var token = lx.read()
-		// fmt.Println(token)
 
 		if token.Typ == tokenizer.EOF {
 			break
@@ -43,8 +30,12 @@ func LexText(lx *lexer) StateFn {
 				return lexAssignment
 			case "if":
 				return lexIfStatement
-			case "else":
-				return lexElseStatement
+			case "func":
+				return lexMethod
+			}
+
+			if lx.peek().Typ == tokenizer.RoundL {
+				return lexCall
 			}
 
 			if string(lx.peek().Val) == "=" {
@@ -55,15 +46,6 @@ func LexText(lx *lexer) StateFn {
 
 	return nil
 }
-
-//#region Public
-
-// func LexCondition(lx *lexer) (state StateFn) {
-
-// 	return nil
-// }
-
-//#endregion
 
 func lexAssignment(lx *lexer) (state StateFn) {
 	defer func() {
@@ -92,12 +74,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 		}
 
 		if token.Typ == tokenizer.RoundL {
-			if !lx.wrapScope() {
-				lx.errorf("Value assignment contained unmatched bracket")
-				lx.consume()
-				return true
-			}
-
+			lx.wrapScope()
 			return false
 		}
 
@@ -117,23 +94,21 @@ func lexAssignment(lx *lexer) (state StateFn) {
 	return LexText
 }
 
-func lexIfStatement(lx *lexer) StateFn {
+func lexIfStatement(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
 	lx.emitItem(Keyword)
 
 	lx.expect(tokenizer.RoundL)
-
-	if !lx.wrapScope() {
-		return lx.errorf("Unmatched bracket for conditional statement")
-	}
-
+	lx.wrapScope()
 	lx.emitItem(Condition)
 
 	lx.expect(tokenizer.CurlyL)
-
-	if !lx.wrapScope() {
-		return lx.errorf("Unmatched bracket for statement scope")
-	}
-
+	lx.wrapScope()
 	lx.emitItem(Scope)
 
 	if lx.accept(tokenizer.EOL) {
@@ -148,7 +123,13 @@ func lexIfStatement(lx *lexer) StateFn {
 	return LexText
 }
 
-func lexElseStatement(lx *lexer) StateFn {
+func lexElseStatement(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
 	if lx.acceptContent("if") {
 		return lexIfStatement
 	}
@@ -156,11 +137,7 @@ func lexElseStatement(lx *lexer) StateFn {
 	lx.emitItem(Keyword)
 
 	lx.expect(tokenizer.CurlyL)
-
-	if !lx.wrapScope() {
-		return lx.errorf("Unmatched bracket for statement scope")
-	}
-
+	lx.wrapScope()
 	lx.emitItem(Scope)
 
 	lx.emitBlock(Statement)
@@ -168,7 +145,13 @@ func lexElseStatement(lx *lexer) StateFn {
 	return LexText
 }
 
-func lexCommand(lx *lexer) StateFn {
+func lexCommand(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
 	if !slices.Contains(utils.Keys(syntax.Commands), string(lx.peekBack().Val)) {
 		return lx.errorf("Unknown command: %s", string(lx.peekBack().Val))
 	}
@@ -176,14 +159,53 @@ func lexCommand(lx *lexer) StateFn {
 	lx.emitItem(Command)
 
 	lx.expect(tokenizer.RoundL)
-
-	if !lx.wrapScope() {
-		return lx.errorf("Unmatched bracket")
-	}
-
+	lx.wrapScope()
 	lx.emitItem(Arguments)
 
 	lx.emitBlock(BuiltIn)
+
+	return LexText
+}
+
+func lexMethod(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
+	lx.emitItem(Keyword)
+
+	lx.expect(tokenizer.Text)
+	lx.emitItem(Identifier)
+
+	lx.expect(tokenizer.RoundL)
+	lx.wrapScope()
+	lx.emitItem(Arguments)
+
+	lx.expect(tokenizer.CurlyL)
+	lx.wrapScope()
+	lx.emitItem(Scope)
+
+	lx.emitBlock(Method)
+
+	return LexText
+}
+
+func lexCall(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
+	lx.emitItem(Identifier)
+
+	lx.expect(tokenizer.RoundL)
+	lx.wrapScope()
+	lx.emitItem(Arguments)
+
+	lx.emitBlock(Call)
 
 	return LexText
 }

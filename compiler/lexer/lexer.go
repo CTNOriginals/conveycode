@@ -177,11 +177,13 @@ func (this *lexer) acceptContent(valid string) bool {
 
 // Accept until f returns true or EOF is reached
 func (this *lexer) acceptUntilFunc(f func(token tokenizer.Token) bool) bool {
-	for {
+	for !this.isEOF() {
 		if f(this.read()) {
-			return !this.isEOF()
+			return true
 		}
 	}
+
+	return false
 }
 
 // func (this *lexer) expect(valid ...tokenizer.TokenType) (bool, StateFn) {
@@ -220,7 +222,7 @@ func (this *lexer) expect(valid ...tokenizer.TokenType) {
 // 	return true, nil
 // }
 
-func (this *lexer) wrapScope() bool {
+func (this *lexer) wrapScope() {
 	var openBracket = this.peekBack().Typ
 	var closeBracket tokenizer.TokenType
 
@@ -234,7 +236,7 @@ func (this *lexer) wrapScope() bool {
 	}
 
 	var depth = 0
-	return this.acceptUntilFunc(func(token tokenizer.Token) bool {
+	var response = this.acceptUntilFunc(func(token tokenizer.Token) bool {
 		if token.Typ == closeBracket {
 			if depth == 0 {
 				return true
@@ -247,6 +249,10 @@ func (this *lexer) wrapScope() bool {
 
 		return false
 	})
+
+	if !response {
+		panic(this.errorf("Unmatched bracket '%s'", string(this.tokens[this.start].Val)))
+	}
 }
 
 func (this *lexer) emitItem(typ itemType) {

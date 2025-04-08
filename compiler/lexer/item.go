@@ -20,6 +20,7 @@ const (
 	Identifier
 	Scope
 	Command
+	Parameters
 	Arguments
 	ItemError
 )
@@ -34,6 +35,7 @@ func (this itemType) String() string {
 		"Identifier",
 		"Scope",
 		"Command",
+		"Parameters",
 		"Arguments",
 		"ItemError",
 	}[this-1]
