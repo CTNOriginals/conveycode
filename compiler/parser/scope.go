@@ -20,12 +20,12 @@ type Scope struct {
 	context   scopeContext
 	variables variableDefinitions
 	methods   methodDefinitions
-	children  []Scope
+	children  []*Scope
 	//?? parent? string
 }
 
 var scopeCount int
-var GlobalScope Scope
+var GlobalScope *Scope
 
 func GetScopeID() (id int) {
 	id = scopeCount
@@ -33,19 +33,17 @@ func GetScopeID() (id int) {
 	return id
 }
 
-func NewScope(context scopeContext) Scope {
-	return Scope{
+func NewScope(context scopeContext) *Scope {
+	return &Scope{
 		id:        GetScopeID(),
 		context:   context,
-		variables: variableDefinitions{},
-		methods:   methodDefinitions{},
+		variables: make(variableDefinitions),
+		methods:   make(methodDefinitions),
 	}
 }
 
 func InitializeScope() {
-	GlobalScope.Clear()
-
-	scopeCount = 0
+	// scopeCount = 0
 	GlobalScope = NewScope(Global)
 }
 
@@ -61,15 +59,15 @@ func (this Scope) String() string {
 
 // #region Psuh
 func (this *Scope) PushVariable(block lexer.Block) {
-	this.variables[block.GetIdentifier()] = NewVariableDefinition(block, *this)
+	this.variables[block.GetIdentifier()] = NewVariableDefinition(block, this)
 }
 func (this *Scope) PushMethod(block lexer.Block) (def methodDefinition) {
 	def = NewMethodDefinition(block)
 	this.methods[block.GetIdentifier()] = def
 	return def
 }
-func (this *Scope) PushChild(child Scope) {
-	this.children = append(this.children, child)
+func (this *Scope) PushChild(child ...*Scope) {
+	this.children = append(this.children, child...)
 }
 
 //#endregion
@@ -82,8 +80,17 @@ func (this Scope) ContainsMethod(block lexer.Block) bool {
 	var _, exists = this.methods[block.GetIdentifier()]
 	return exists
 }
+func (this Scope) ContainsChild(scope Scope) bool {
+	for _, child := range this.children {
+		if scope.id == child.id {
+			return true
+		}
+	}
 
-func (this Scope) GetVariableByIdentifier(ident string) variableDefinition {
+	return false
+}
+
+func (this *Scope) GetVariableByIdentifier(ident string) variableDefinition {
 	if block, exists := this.variables[ident]; exists {
 		return block
 	}
@@ -106,13 +113,20 @@ func (this Scope) GetIdentifierLabel(ident string) string {
 	return fmt.Sprintf("%s_%s", this.GetLabelPrefix(), ident)
 }
 
-func (this Scope) forEachChild(f func(child Scope)) {
+func (this Scope) forEachChild(f func(child *Scope) any) (response any) {
 	for _, child := range this.children {
-		f(child)
+		if response = f(child); response != nil {
+			return response
+		}
 	}
+
 	for _, child := range this.children {
-		child.forEachChild(f)
+		if response = child.forEachChild(f); response != nil {
+			return response
+		}
 	}
+
+	return nil
 }
 func (this Scope) forEachMethod(f func(ident string, def methodDefinition)) {
 	for ident, def := range this.methods {
@@ -124,34 +138,33 @@ func (this Scope) forEachMethod(f func(ident string, def methodDefinition)) {
 	}
 }
 
-func (this Scope) getParentScope() (parent Scope) {
-	parent = GlobalScope
-	GlobalScope.forEachChild(func(child Scope) {
-		if this.id == child.id {
-			return
+func (this Scope) getParentScope() (parent *Scope) {
+	if this.context == Global {
+		return nil
+	}
+
+	var response = GlobalScope.forEachChild(func(child *Scope) any {
+		if child.ContainsChild(this) {
+			return child
 		}
+
+		return nil
 	})
 
-	return parent
+	if response == nil {
+		return GlobalScope
+	}
+
+	return response.(*Scope)
 }
 
-func (this Scope) getParentMethodScope() (parent Scope) {
+func (this *Scope) getParentMethodScope() (parent *Scope) {
 	parent = this
 
 	// fmt.Println(parent.context)
 	for parent.context != Method && parent.context != Global {
-		fmt.Println(parent.context)
 		parent = parent.getParentScope()
 	}
 
 	return parent
-}
-
-// Clean up all memory contained in the scope
-func (this *Scope) Clear() {
-	clear(this.variables)
-	clear(this.methods)
-	for _, child := range this.children {
-		child.Clear()
-	}
 }

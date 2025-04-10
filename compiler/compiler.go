@@ -36,7 +36,7 @@ func compile(tokens tokenizer.TokenList) []string {
 
 	//#region Parser
 	fmt.Printf("-- %s --\n", color.InBlue("Parser"))
-	var prs = parser.Parse(blocks, &parser.GlobalScope)
+	var prs = parser.Parse(blocks, parser.GlobalScope)
 
 	var instructions = parser.Construct(prs)
 	var instructionLines []string

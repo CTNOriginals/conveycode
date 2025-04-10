@@ -9,12 +9,12 @@ import (
 
 type valueDefinition struct {
 	block lexer.Block
-	scope Scope
+	scope *Scope
 
 	item lexer.Item
 }
 
-func NewValueDefinition(block lexer.Block, item lexer.Item, scope Scope) valueDefinition {
+func NewValueDefinition(block lexer.Block, item lexer.Item, scope *Scope) valueDefinition {
 	return valueDefinition{
 		block: block,
 		scope: scope,
@@ -22,7 +22,7 @@ func NewValueDefinition(block lexer.Block, item lexer.Item, scope Scope) valueDe
 	}
 }
 
-func NewValueDefinitionFromBlock(block lexer.Block, valueType lexer.ItemType, scope Scope) valueDefinition {
+func NewValueDefinitionFromBlock(block lexer.Block, valueType lexer.ItemType, scope *Scope) valueDefinition {
 	return valueDefinition{
 		block: block,
 		scope: scope,
@@ -31,7 +31,7 @@ func NewValueDefinitionFromBlock(block lexer.Block, valueType lexer.ItemType, sc
 }
 
 // Converts all items of valueType into a valueDefinition and returns them
-func ConvertAllToValueDefinition(block lexer.Block, valueType lexer.ItemType, scope Scope) (defList []valueDefinition) {
+func ConvertAllToValueDefinition(block lexer.Block, valueType lexer.ItemType, scope *Scope) (defList []valueDefinition) {
 	for _, item := range block.GetItemsOfType(valueType) {
 		defList = append(defList, NewValueDefinition(block, item, scope))
 	}
@@ -68,7 +68,7 @@ func (this valueDefinition) getValidated() (validated lexer.Item) {
 			))
 		}
 
-		token.Val = []rune(this.scope.GetIdentifierLabel(string(token.Val)))
+		token.Val = []rune(variableDef.scope.GetIdentifierLabel(string(token.Val)))
 		validated.Tokens = append(validated.Tokens, token)
 	}
 

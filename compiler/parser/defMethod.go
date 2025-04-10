@@ -15,7 +15,7 @@ type methodDefinition struct {
 
 	ident      string
 	parameters []string
-	scope      Scope
+	scope      *Scope
 }
 
 type methodDefinitions map[string]methodDefinition

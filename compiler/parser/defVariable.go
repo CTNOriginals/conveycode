@@ -11,7 +11,7 @@ import (
 
 type variableDefinition struct {
 	block lexer.Block
-	scope Scope
+	scope *Scope
 
 	ident string
 	value valueDefinition
@@ -33,7 +33,7 @@ func (this variableDefinitions) String() (str string) {
 	return fmt.Sprintf("%s {\n\t%s\n}", head, strings.Join(lines, "\n\t"))
 }
 
-func NewVariableDefinition(block lexer.Block, scope Scope) variableDefinition {
+func NewVariableDefinition(block lexer.Block, scope *Scope) variableDefinition {
 	return variableDefinition{
 		block: block,
 		scope: scope,
@@ -41,6 +41,10 @@ func NewVariableDefinition(block lexer.Block, scope Scope) variableDefinition {
 		ident: block.GetIdentifier(),
 		value: NewValueDefinitionFromBlock(block, lexer.Value, scope),
 	}
+}
+
+func (this variableDefinition) String() string {
+	return fmt.Sprintf("%s: %s", color.InBlue(this.ident), this.value.item.Tokens.JoinValues(" "))
 }
 
 func (this variableDefinition) IsError() bool {

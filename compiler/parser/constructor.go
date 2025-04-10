@@ -25,7 +25,7 @@ func init() {
 		lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var prefix = "set"
 			var itemIdent = block.FindItemByType(lexer.Identifier)
-			var valDef = NewValueDefinitionFromBlock(block, lexer.Value, *scope)
+			var valDef = NewValueDefinitionFromBlock(block, lexer.Value, scope)
 			var label = scope.GetIdentifierLabel(itemIdent.ValueString())
 
 			//- Validation
@@ -77,7 +77,7 @@ func init() {
 		},
 		lexer.BuiltIn: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
-			var valueDef = NewValueDefinitionFromBlock(block, lexer.Arguments, *scope)
+			var valueDef = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
 			var args = valueDef.rawValues()
 
 			for _, arg := range args {
@@ -92,7 +92,7 @@ func init() {
 			var exitLabel string
 			var exitInstruction Instruction
 
-			var subScope Scope
+			var subScope *Scope
 			var label string
 			var comparable string
 			var subInstructions []Instruction
@@ -103,12 +103,11 @@ func init() {
 				switch item.Typ {
 				case lexer.Scope:
 					subScope = NewScope(Statement)
+					scope.PushChild(subScope)
 
 					var blocks = lexer.Lex(item.Tokens).Construct()
-					var prs = Parse(blocks, &subScope)
+					var prs = Parse(blocks, subScope)
 					subInstructions = Construct(prs)
-
-					scope.PushChild(subScope)
 
 					label = fmt.Sprintf("%s_%s%d", prefix, Statement, subScope.id)
 					if i == len(block.Items)-1 {
@@ -117,7 +116,7 @@ func init() {
 					}
 				case lexer.Condition:
 					var comparator = ""
-					var valueDef = NewValueDefinition(block, item, *scope)
+					var valueDef = NewValueDefinition(block, item, scope)
 					var values = valueDef.rawValues()
 
 					for _, token := range valueDef.item.Tokens {
@@ -176,7 +175,7 @@ func init() {
 			var def = scope.PushMethod(block)
 
 			var body = def.block.FindItemByType(lexer.Scope)
-			var prs = ParseItem(body, &def.scope)
+			var prs = ParseItem(body, def.scope)
 			var methodInstructions = Construct(prs)
 
 			methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(def.getMethodLabel(*scope)+":"))
@@ -234,7 +233,7 @@ func init() {
 			// fmt.Println(scope.context)
 			// fmt.Println(parentScope.context)
 			// fmt.Println(mockAssignment)
-			instructions = Construct(ParseContent(block.Items[0].Tokens[0].File, mockAssignment, &valueDef.scope))
+			instructions = Construct(ParseContent(block.Items[0].Tokens[0].File, mockAssignment, valueDef.scope))
 
 			return instructions
 		},
