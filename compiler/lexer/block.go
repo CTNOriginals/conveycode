@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"conveycode/compiler/tokenizer"
 	"fmt"
 	"strings"
 
@@ -18,6 +19,7 @@ const (
 	Statement
 	Method
 	Call
+	Return
 	BuiltIn
 
 	BlockEOF
@@ -31,6 +33,7 @@ func (this BlockType) String() string {
 		"Statement",
 		"Method",
 		"Call",
+		"Return",
 		"BuiltIn",
 		"BlockEOF",
 		"BlockError",
@@ -39,7 +42,7 @@ func (this BlockType) String() string {
 
 type Block struct {
 	Typ   BlockType
-	Items []item
+	Items []Item
 }
 
 func NewBlock(typ BlockType) Block {
@@ -56,10 +59,14 @@ func (this Block) String() (str string) {
 	return fmt.Sprintf("%s\n %s", color.InBlue(color.Bold+this.Typ.String()), strings.Join(itemString, " "))
 }
 
+func (this Block) IsError() bool {
+	return this.Typ == BlockError
+}
+
 // Finds and returns the first item of typ
 //
 // Returns new item of type ItemError if the typ was not present within this block
-func (this Block) FindItemByType(typ itemType) item {
+func (this Block) FindItemByType(typ ItemType) Item {
 	for _, item := range this.Items {
 		if item.Typ == typ {
 			return item
@@ -69,7 +76,12 @@ func (this Block) FindItemByType(typ itemType) item {
 	return NewItem(ItemError)
 }
 
-func (this Block) GetItemsOfType(typ itemType) (items []item) {
+// Returns the first identifier found in the block if present
+func (this Block) GetIdentifier() (item string) {
+	return this.FindItemByType(Identifier).ValueString()
+}
+
+func (this Block) GetItemsOfType(typ ItemType) (items []Item) {
 	for _, item := range this.Items {
 		if item.Typ == typ {
 			items = append(items, item)
@@ -77,6 +89,49 @@ func (this Block) GetItemsOfType(typ itemType) (items []item) {
 	}
 
 	return items
+}
+
+func (this Block) getArgumentHolderType() ItemType {
+	switch this.Typ {
+	case Method:
+		return Parameters
+	case Call:
+		return Arguments
+	}
+
+	return ItemError
+}
+
+// Get the number of parameters/arguments this block holds.
+// Can be both a function call and a function definition
+func (this Block) GetArity() (count int) {
+	var typ = this.getArgumentHolderType()
+	var fieldItem = this.FindItemByType(typ)
+
+	if fieldItem.IsError() || fieldItem.Tokens[1].Typ == tokenizer.RoundR {
+		return 0
+	}
+
+	for _, token := range fieldItem.Tokens {
+		if token.Typ.IsValue() {
+			count++
+		}
+	}
+
+	return count
+}
+
+func (this Block) GetArguments() (args []string) {
+	var typ = this.getArgumentHolderType()
+	var argItem = this.FindItemByType(typ)
+
+	for _, token := range argItem.Tokens {
+		if token.Typ.IsValue() {
+			args = append(args, string(token.Val))
+		}
+	}
+
+	return args
 }
 
 // Returns the line number this block starts on
@@ -89,13 +144,16 @@ func (this Block) BlockColumn() int {
 	return this.Items[0].Tokens[0].Column
 }
 
+// #region Error handling
 func (this Block) GetErrorPrefix(col int) string {
 	return fmt.Sprintf(color.InRed("ERROR %s:%s:"), color.InYellow(this.BlockLine()), color.InYellow(col))
 }
 
-func (this Block) ErrorF(sourceItem item, format string, args ...any) string {
+func (this Block) ErrorF(sourceItem Item, format string, args ...any) string {
 	var message = fmt.Sprintf(format, args...)
 	var location = fmt.Sprintf("%s:%s:%s", color.InCyan(sourceItem.ItemFile()), color.InYellow(sourceItem.ItemLine()), color.InYellow(sourceItem.ItemColumn()))
 
 	return fmt.Sprintf("%s\n\t%s", message, location)
 }
+
+//#endregion

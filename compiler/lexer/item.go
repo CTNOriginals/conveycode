@@ -7,10 +7,10 @@ import (
 	"github.com/TwiN/go-color"
 )
 
-type itemType int
+type ItemType int
 
 const (
-	_ itemType = iota
+	_ ItemType = iota
 
 	ItemText
 	Keyword
@@ -25,7 +25,7 @@ const (
 	ItemError
 )
 
-func (this itemType) String() string {
+func (this ItemType) String() string {
 	return [...]string{
 		"ItemText",
 		"Keyword",
@@ -41,39 +41,43 @@ func (this itemType) String() string {
 	}[this-1]
 }
 
-type item struct {
-	Typ    itemType
+type Item struct {
+	Typ    ItemType
 	Tokens tokenizer.TokenList
 }
 
-func NewItem(typ itemType, tokens ...tokenizer.Token) item {
-	return item{
+func NewItem(typ ItemType, tokens ...tokenizer.Token) Item {
+	return Item{
 		Typ:    typ,
 		Tokens: tokens,
 	}
 }
 
-func (this item) String() string {
+func (this Item) String() string {
 	return fmt.Sprintf("%s\n  %s\n", color.InCyan(color.Bold+this.Typ.String()), this.Tokens.String())
 }
 
 // Returns all token values joint into a string without seperator
 //
 // This is mostly useful for items that usually only contain one token
-func (this item) ValueString() string {
+func (this Item) ValueString() string {
 	return this.Tokens.JoinValues("")
 }
 
-func (this item) Compare(other item) bool {
+func (this Item) Compare(other Item) bool {
 	return this.Typ == other.Typ && this.ValueString() == other.ValueString()
 }
 
-func (this item) ItemFile() string {
+func (this Item) ItemFile() string {
 	return this.Tokens[0].File
 }
-func (this item) ItemLine() int {
+func (this Item) ItemLine() int {
 	return this.Tokens[0].Line
 }
-func (this item) ItemColumn() int {
+func (this Item) ItemColumn() int {
 	return this.Tokens[0].Column
+}
+
+func (this Item) IsError() bool {
+	return this.Typ == ItemError
 }

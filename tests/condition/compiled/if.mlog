@@ -1,11 +1,8 @@
-set x 3
-set y 8
-op add z x y
-print z
-jump global0_statement1 greaterThanEq z 10
+set global0_x true
+jump global0_statement1 equal global0_x true
+jump global0_statement1_exit always
 global0_statement1:
-print "z < 10 ("
-print z
-print ")"
-global0_statement1:
+print 1
+global0_statement1_exit:
 printflush "message1"
+end

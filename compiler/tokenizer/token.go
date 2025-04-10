@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/TwiN/go-color"
 )
@@ -59,6 +60,10 @@ func (this TokenType) String() string {
 }
 
 var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Text}
+
+func (this TokenType) IsValue() bool {
+	return slices.Contains(ValueTokenTypes, this)
+}
 
 // #region Token
 type Token struct {

@@ -22,7 +22,7 @@ type lexer struct {
 	tokens tokenizer.TokenList
 	Blocks chan Block
 	State  StateFn
-	items  []item
+	items  []Item
 	start  int
 	pos    int
 }
@@ -255,7 +255,31 @@ func (this *lexer) wrapScope() {
 	}
 }
 
-func (this *lexer) emitItem(typ itemType) {
+func (this *lexer) wrapValue() {
+	if !this.acceptUntilFunc(func(token tokenizer.Token) bool {
+		var valueContent = append(tokenizer.ValueTokenTypes, tokenizer.Operator)
+
+		if slices.Contains(valueContent, token.Typ) {
+			return false
+		}
+
+		if token.Typ == tokenizer.RoundL {
+			this.wrapScope()
+			return false
+		}
+
+		if token.Typ == tokenizer.EOL {
+			this.backup()
+			return true
+		}
+
+		return true
+	}) {
+		this.backup() //? Dont include the EOF
+	}
+}
+
+func (this *lexer) emitItem(typ ItemType) {
 	this.items = append(this.items, NewItem(typ, this.stream()...))
 	this.consume()
 }
@@ -269,7 +293,7 @@ func (this *lexer) emitBlock(typ BlockType) {
 	//? this doesnt make a new slice,
 	//? it just keeps the values there and marks those memory adresses as free to override
 	this.items = this.items[:0]
-	this.items = make([]item, 0)
+	this.items = make([]Item, 0)
 	this.consume()
 }
 

@@ -1,12 +1,10 @@
-set x 8
-jump global0_statement3 greaterThanEq z 10
-jump global0_statement2 equal x 8
-print false
-jump global0_statement1 always
+set global0_x false
+jump global0_statement2 equal global0_x true
+jump global0_statement1_exit always
+print 2
+jump global0_statement1_exit always
 global0_statement2:
-print x
-jump global0_statement1 always
-global0_statement3:
-print true
-global0_statement1:
+print 1
+global0_statement1_exit:
 printflush "message1"
+end

@@ -10,14 +10,7 @@ import (
 	"github.com/TwiN/go-color"
 )
 
-// Compile a .conv file to .mlog
-//
-//	compiler.CompileFile("foo/bar/file.conv", "dest/")
-func CompileFile(sourceFilePath string, dest string) {
-	fmt.Printf("\n\n-- %s %s --\n", color.InGreen("File"), color.InYellow(sourceFilePath))
-
-	var tokens tokenizer.TokenList = tokenizer.Tokenize(sourceFilePath)
-
+func compile(tokens tokenizer.TokenList) []string {
 	//#region Tokenizer
 	fmt.Printf("\n-- %s --\n", color.InBlue("Tokenizer"))
 	for _, token := range tokens {
@@ -27,6 +20,7 @@ func CompileFile(sourceFilePath string, dest string) {
 		}
 
 		fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
+		// fmt.Printf("%s: %s\n", color.InGreen(token.Typ), token.ColoredValue())
 	}
 	//#endregion
 
@@ -53,5 +47,14 @@ func CompileFile(sourceFilePath string, dest string) {
 	}
 	//#endregion
 
-	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, instructionLines)
+	return instructionLines
+}
+
+// TODO Allow for passing in a dir that doesnt point to a file, and then have all the files contained compiled
+// Compile a .conv file to .mlog
+//
+//	compiler.CompileFile("foo/bar/file.conv", "dest/")
+func CompileFile(sourceFilePath string, dest string) {
+	fmt.Printf("\n-- %s %s --\n", color.InGreen("File"), color.InYellow(sourceFilePath))
+	utils.WriteFile(utils.GetFileName(sourceFilePath), dest, compile(tokenizer.Tokenize(sourceFilePath)))
 }

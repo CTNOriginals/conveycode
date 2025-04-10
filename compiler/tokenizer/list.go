@@ -43,17 +43,18 @@ func (this TokenList) FindTokenByType(typ TokenType) Token {
 }
 
 // Returns the stream of values contained in the list
-func (this TokenList) Stream() (str string) {
+func (this TokenList) Stream() (stream string) {
+	var parts []string
 	for _, token := range this {
 		if token.Typ == EOL {
-			str += "\n"
+			parts = append(parts, "\n")
 			continue
 		}
 
-		str += token.String()
+		parts = append(parts, string(token.Val))
 	}
 
-	return str
+	return strings.Join(parts, " ")
 }
 func (this TokenList) ColoredStream() (str string) {
 	for _, token := range this {
@@ -88,7 +89,7 @@ func (this TokenList) Values() (ret [][]rune) {
 	return ret
 }
 
-func (this TokenList) ValuesAsString() (ret []string) {
+func (this TokenList) ValuesAsStringArray() (ret []string) {
 	ret = make([]string, len(this))
 	for i, token := range this {
 		ret[i] = string(token.Val)
@@ -98,7 +99,7 @@ func (this TokenList) ValuesAsString() (ret []string) {
 }
 
 func (this TokenList) JoinValues(seperator string) string {
-	return strings.Join(this.ValuesAsString(), seperator)
+	return strings.Join(this.ValuesAsStringArray(), seperator)
 }
 
 // type TokenList []Token

@@ -32,6 +32,8 @@ func LexText(lx *lexer) (state StateFn) {
 				return lexIfStatement
 			case "func":
 				return lexMethod
+			case "return":
+				return lexReturn
 			}
 
 			if lx.peek().Typ == tokenizer.RoundL {
@@ -66,28 +68,7 @@ func lexAssignment(lx *lexer) (state StateFn) {
 	lx.expect(tokenizer.Operator)
 	lx.emitItem(Operator)
 
-	if !lx.acceptUntilFunc(func(token tokenizer.Token) bool {
-		var valueContent = append(tokenizer.ValueTokenTypes, tokenizer.Operator)
-
-		if slices.Contains(valueContent, token.Typ) {
-			return false
-		}
-
-		if token.Typ == tokenizer.RoundL {
-			lx.wrapScope()
-			return false
-		}
-
-		if token.Typ == tokenizer.EOL {
-			lx.backup()
-			return true
-		}
-
-		return true
-	}) {
-		lx.backup() //? Dont include the EOF
-	}
-
+	lx.wrapValue()
 	lx.emitItem(Value)
 	lx.emitBlock(Assignment)
 
@@ -181,7 +162,7 @@ func lexMethod(lx *lexer) (state StateFn) {
 
 	lx.expect(tokenizer.RoundL)
 	lx.wrapScope()
-	lx.emitItem(Arguments)
+	lx.emitItem(Parameters)
 
 	lx.expect(tokenizer.CurlyL)
 	lx.wrapScope()
@@ -206,6 +187,23 @@ func lexCall(lx *lexer) (state StateFn) {
 	lx.emitItem(Arguments)
 
 	lx.emitBlock(Call)
+
+	return LexText
+}
+
+func lexReturn(lx *lexer) (state StateFn) {
+	defer func() {
+		if recover() != nil {
+			state = nil
+		}
+	}()
+
+	lx.emitItem(Keyword)
+
+	lx.wrapValue()
+	lx.emitItem(Value)
+
+	lx.emitBlock(Return)
 
 	return LexText
 }

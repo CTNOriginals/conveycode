@@ -208,9 +208,23 @@ func init() {
 	slices.Sort(handlerKeys)
 }
 
-func Tokenize(filePath string) TokenList {
-	var content = utils.GetFileRunes(filePath)
+// Tokenizes the content of all file paths
+//
+// If an element is equal to "INTERNAL",
+// everything after this element will be treated the file content
+func Tokenize(filePath ...string) (tokens TokenList) {
+	for _, path := range filePath {
+		tokens = append(tokens, tokenizeContent(path, utils.GetFileRunes(path))...)
+	}
 
+	return tokens
+}
+
+func TokenizeContent(filePath string, content string) (tokens TokenList) {
+	return tokenizeContent(filePath, []rune(content))
+}
+
+func tokenizeContent(filePath string, content []rune) TokenList {
 	//? The tokens that are already identified in this line
 	var tokens TokenList = NewTokenList()
 

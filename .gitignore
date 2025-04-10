@@ -10,7 +10,8 @@
 
 # Test binary, built with `go test -c`
 *.test
-/tests/**/compiled/expect/
+*.expect.mlog
+/tests/**/expect/
 /tests/**/prototype/**
 
 # Output of the go coverage tool, specifically when used with LiteIDE

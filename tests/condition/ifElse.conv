@@ -1,13 +1,9 @@
-var x = 8
+var x = false
 
-if (z >= 10) {
-	$print(true)
-}
-else if (x == 8) {
-	$print(x)
-}
-else {
-	$print(false)
+if (x == true) {
+	$print(1)
+} else {
+	$print(2)
 }
 
 $flush("message1")
