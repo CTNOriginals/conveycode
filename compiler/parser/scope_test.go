@@ -19,10 +19,10 @@ func Test_scope(t *testing.T) {
 		Convey("Children of children return the correct parent", func() {
 			So(c1c1.getParentScope(), ShouldEqual, c1)
 		})
-		Convey("Children of the global scope should return the global scope", func() {
+		Convey("Children of the global scope return the global scope", func() {
 			So(c2.getParentScope(), ShouldEqual, GlobalScope)
 		})
-		Convey("Once getParentScope() is ren on the global scope, it should return nil", func() {
+		Convey("If getParentScope() is called on the global scope, it returns nil", func() {
 			So(GlobalScope.getParentScope(), ShouldBeNil)
 		})
 	})
