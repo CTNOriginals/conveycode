@@ -158,13 +158,14 @@ func (this Scope) getParentScope() (parent *Scope) {
 	return response.(*Scope)
 }
 
-func (this *Scope) getParentMethodScope() (parent *Scope) {
-	parent = this
+func (this *Scope) getSurroundingMethod() (surround *Scope) {
+	surround = this
 
-	// fmt.Println(parent.context)
-	for parent.context != Method && parent.context != Global {
-		parent = parent.getParentScope()
+	fmt.Println(surround.context)
+	for surround.context != Method && surround.context != Global {
+		surround = surround.getParentScope()
+		fmt.Println(surround.context)
 	}
 
-	return parent
+	return surround
 }

@@ -6,7 +6,6 @@ import (
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/TwiN/go-color"
 )
@@ -227,7 +226,7 @@ func init() {
 			return instructions
 		},
 		lexer.Return: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var parentScope = scope.getParentMethodScope()
+			var parentScope = scope.getSurroundingMethod()
 			var valueDef = NewValueDefinitionFromBlock(block, lexer.Value, parentScope)
 			var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
 			// fmt.Println(scope.context)
@@ -244,10 +243,7 @@ func Construct(prs *parser) (instructions []Instruction) {
 	defer func() {
 		if errMsg := recover(); errMsg != nil {
 			fmt.Println(errMsg)
-			fmt.Println(string(debug.Stack()))
-			// buf := make([]byte, 1<<16)
-			// runtime.Stack(buf, false)
-			// fmt.Printf("%s", buf)
+			utils.PrintStackTrace()
 		}
 	}()
 
