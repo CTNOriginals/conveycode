@@ -6,86 +6,8 @@ import (
 	"log"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 )
-
-type parsedFilePath struct {
-	Raw string
-	// The full path split by '/'
-	Split []string
-	// The full path to the directory that contains the file
-	Path string
-	// The directory name that contains the file
-	Dir string
-
-	// The full file name + extension
-	File       string
-	Name       string
-	Ext        string
-	LineNumber int
-
-	// The full path excluding any trailing text like the line number
-	Full string
-
-	// Whatever was left at the trailing end of all of it
-	Trail string
-}
-
-func (this parsedFilePath) String() string {
-	var lines []string
-	var values = StructValues(this)
-	for i, key := range StructKeys(this) {
-		lines = append(lines, fmt.Sprintf("%s: %v", key, values[i]))
-	}
-
-	return strings.Join(lines, "\n")
-}
-
-// Parses the file path into a file path struct
-func ParseFilePath(path string) parsedFilePath {
-	path = strings.ReplaceAll(path, "\\", "/")
-
-	var obj = parsedFilePath{
-		Raw:        path,
-		Split:      strings.Split(path, "/"),
-		LineNumber: -1,
-	}
-
-	obj.Path = strings.Join(obj.Split[:len(obj.Split)-1], "/")
-	if len(obj.Split)-2 >= 0 {
-		obj.Dir = obj.Split[len(obj.Split)-2]
-	}
-
-	obj.File = obj.Split[len(obj.Split)-1]
-
-	var fileSplit = strings.Split(obj.File, ".")
-	obj.Name = strings.Join(fileSplit[:len(fileSplit)-1], ".")
-
-	var extSplit = strings.Split(fileSplit[len(fileSplit)-1], "")
-	if len(extSplit) > 0 {
-		var streamLoc = WordCharacterStream.FindStringIndex(strings.Join(extSplit, ""))
-
-		var extBreak = streamLoc[If(len(streamLoc) > 1, 1, 0)]
-		obj.Ext = strings.Join(extSplit[streamLoc[0]:streamLoc[1]], "")
-		obj.Trail = strings.Join(extSplit[extBreak:], "")
-
-		obj.File = fmt.Sprintf("%s.%s", obj.Name, obj.Ext)
-
-		if len(extSplit) > streamLoc[1] {
-			var numEnd = NonNumberCharacter.FindStringIndex(strings.Join(extSplit[extBreak+1:], ""))
-			obj.LineNumber, _ = strconv.Atoi(If(
-				extSplit[extBreak] == ":",
-				strings.Join(extSplit[extBreak+1:(extBreak+1)+numEnd[0]], ""),
-				"-1",
-			))
-		}
-	}
-
-	obj.Full = fmt.Sprintf("%s/%s", strings.TrimLeft(obj.Path, " \t\n"), obj.File)
-
-	return obj
-}
 
 // Parses the file path and returns just the file name without the extension
 //

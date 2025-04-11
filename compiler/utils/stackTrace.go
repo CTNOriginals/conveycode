@@ -34,7 +34,7 @@ func PrintStackTrace() {
 				color.InBlue(filePath.Path),
 				color.InGreen(filePath.Name),
 				color.InCyan(filePath.Ext),
-				color.InYellow(filePath.LineNumber),
+				color.InYellow(filePath.Line),
 			)
 		} else {
 			line = fmt.Sprintf(
