@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
+	"conveycode/internal"
 	"fmt"
 
 	"github.com/TwiN/go-color"
@@ -69,12 +70,21 @@ func (this Item) Compare(other Item) bool {
 }
 
 func (this Item) ItemFile() string {
+	if this.IsError() || len(this.Tokens) == 0 {
+		return internal.StringError
+	}
 	return this.Tokens[0].File
 }
 func (this Item) ItemLine() int {
+	if this.IsError() || len(this.Tokens) == 0 {
+		return -1
+	}
 	return this.Tokens[0].Line
 }
 func (this Item) ItemColumn() int {
+	if this.IsError() || len(this.Tokens) == 0 {
+		return -1
+	}
 	return this.Tokens[0].Column
 }
 

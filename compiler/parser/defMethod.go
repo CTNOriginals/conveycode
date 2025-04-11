@@ -2,7 +2,6 @@ package parser
 
 import (
 	"conveycode/compiler/lexer"
-	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
 	"strings"
@@ -15,6 +14,7 @@ type methodDefinition struct {
 
 	ident      string
 	parameters []string
+	returnVar  variableDefinition
 	scope      *Scope
 }
 
@@ -42,15 +42,21 @@ func NewMethodDefinition(block lexer.Block) (def methodDefinition) {
 		scope:      NewScope(Method),
 	}
 
-	var mockVariables []string
+	var nullToken = ValuesToTokenList(block.BlockFile(), "null")
+
+	def.returnVar = NewVariableDefinition(CreateMockAssignment(block.BlockFile(), true, "return", nullToken), def.scope)
+	def.scope.variables[def.returnVar.ident] = def.returnVar
+
+	var mockBlocks []lexer.Block
 	for _, param := range def.parameters {
 		//TODO add default param values instead of null
-		mockVariables = append(mockVariables, fmt.Sprintf("var %s = null", param))
+		mockBlocks = append(mockBlocks, CreateMockAssignment(block.BlockFile(), true, param, nullToken))
 	}
 
-	var mockTokens = tokenizer.TokenizeContent(def.block.Items[0].Tokens[0].File, strings.Join(mockVariables, "\n"))
-	var mockBlocks = lexer.Lex(mockTokens).Construct()
 	for _, block := range mockBlocks {
+		if block.Typ == lexer.BlockEOF {
+			continue
+		}
 		def.scope.PushVariable(block)
 	}
 

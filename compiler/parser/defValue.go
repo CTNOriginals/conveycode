@@ -42,6 +42,7 @@ func ConvertAllToValueDefinition(block lexer.Block, valueType lexer.ItemType, sc
 func (this valueDefinition) getVariableOrigin(ident string) (variableDef variableDefinition) {
 	var parentScope = this.scope
 	variableDef = parentScope.GetVariableByIdentifier(ident)
+	// fmt.Println("Search:", ident, parentScope.variables, parentScope.GetVariableByIdentifier(ident))
 
 	for variableDef.IsError() && parentScope.context != Global {
 		parentScope = parentScope.getParentScope()

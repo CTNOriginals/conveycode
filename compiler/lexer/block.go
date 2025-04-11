@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
+	"conveycode/internal"
 	"fmt"
 	"strings"
 
@@ -78,6 +79,9 @@ func (this Block) FindItemByType(typ ItemType) Item {
 
 // Returns the first identifier found in the block if present
 func (this Block) GetIdentifier() (item string) {
+	if this.FindItemByType(Identifier).IsError() {
+		return internal.StringError
+	}
 	return this.FindItemByType(Identifier).ValueString()
 }
 
@@ -134,6 +138,18 @@ func (this Block) GetArguments() (args []string) {
 	return args
 }
 
+func (this Block) FirstItem() Item {
+	if len(this.Items) == 0 {
+		return NewItem(ItemError)
+	}
+
+	return this.Items[0]
+}
+
+func (this Block) BlockFile() string {
+	return this.FirstItem().ItemFile()
+}
+
 // Returns the line number this block starts on
 func (this Block) BlockLine() int {
 	return this.Items[0].Tokens[0].Line
@@ -151,8 +167,11 @@ func (this Block) GetErrorPrefix(col int) string {
 
 func (this Block) ErrorF(sourceItem Item, format string, args ...any) string {
 	var message = fmt.Sprintf(format, args...)
-	var location = fmt.Sprintf("%s:%s:%s", color.InCyan(sourceItem.ItemFile()), color.InYellow(sourceItem.ItemLine()), color.InYellow(sourceItem.ItemColumn()))
+	if sourceItem.IsError() {
+		return fmt.Sprintf("%s\n", message)
+	}
 
+	var location = fmt.Sprintf("%s:%s:%s", color.InCyan(sourceItem.ItemFile()), color.InYellow(sourceItem.ItemLine()), color.InYellow(sourceItem.ItemColumn()))
 	return fmt.Sprintf("%s\n\t%s", message, location)
 }
 

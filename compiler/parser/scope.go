@@ -2,6 +2,7 @@ package parser
 
 import (
 	"conveycode/compiler/lexer"
+	"conveycode/internal"
 	"fmt"
 )
 
@@ -59,11 +60,16 @@ func (this Scope) String() string {
 
 // #region Psuh
 func (this *Scope) PushVariable(block lexer.Block) {
+	var ident = block.GetIdentifier()
+	if ident == internal.StringError {
+		return
+	}
 	this.variables[block.GetIdentifier()] = NewVariableDefinition(block, this)
 }
 func (this *Scope) PushMethod(block lexer.Block) (def methodDefinition) {
 	def = NewMethodDefinition(block)
 	this.methods[block.GetIdentifier()] = def
+	this.PushChild(def.scope)
 	return def
 }
 func (this *Scope) PushChild(child ...*Scope) {
@@ -161,10 +167,8 @@ func (this Scope) getParentScope() (parent *Scope) {
 func (this *Scope) getSurroundingMethod() (surround *Scope) {
 	surround = this
 
-	fmt.Println(surround.context)
 	for surround.context != Method && surround.context != Global {
 		surround = surround.getParentScope()
-		fmt.Println(surround.context)
 	}
 
 	return surround

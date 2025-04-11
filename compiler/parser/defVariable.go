@@ -25,8 +25,8 @@ func (this variableDefinitions) String() (str string) {
 	}
 
 	var lines []string
-	for key, val := range this {
-		lines = append(lines, fmt.Sprintf("%s: %s", color.InBlue(key), val.value.item.Tokens.JoinValues(" ")))
+	for _, val := range this {
+		lines = append(lines, val.String())
 	}
 
 	var head = fmt.Sprintf("Variables %s", color.InCyan(this[utils.Keys(this)[0]].scope.GetLabelPrefix()))

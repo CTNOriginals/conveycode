@@ -12,11 +12,11 @@ import (
 
 var showPointers = false
 
-func PrintStackTrace() {
+func PrintStackTrace(offset int) {
 	var seperator = []byte("\n")
 	var stack = debug.Stack()
 	//? Remove the fers few lines that contain the traces that lead here that
-	var stackLines = bytes.Split(stack, seperator)[9:]
+	var stackLines = bytes.Split(stack, seperator)[offset:]
 	var rootPath = strings.ReplaceAll(internal.RootPath, "\\", "/")
 
 	var lines = make([]string, len(stackLines))

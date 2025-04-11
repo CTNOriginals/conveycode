@@ -6,6 +6,7 @@ import (
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
 	"fmt"
+	"strings"
 
 	"github.com/TwiN/go-color"
 )
@@ -228,13 +229,10 @@ func init() {
 		lexer.Return: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var parentScope = scope.getSurroundingMethod()
 			var valueDef = NewValueDefinitionFromBlock(block, lexer.Value, parentScope)
-			var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
-			// fmt.Println(scope.context)
-			// fmt.Println(parentScope.context)
-			// fmt.Println(mockAssignment)
-			instructions = Construct(ParseContent(block.Items[0].Tokens[0].File, mockAssignment, valueDef.scope))
+			// var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
+			var mockAssignment = CreateMockAssignment(block.BlockFile(), false, "return", valueDef.item.Tokens)
 
-			return instructions
+			return Construct(Parse([]lexer.Block{mockAssignment}, valueDef.scope))
 		},
 	}
 }
@@ -243,7 +241,7 @@ func Construct(prs *parser) (instructions []Instruction) {
 	defer func() {
 		if errMsg := recover(); errMsg != nil {
 			fmt.Println(errMsg)
-			utils.PrintStackTrace()
+			utils.PrintStackTrace(9)
 		}
 	}()
 
@@ -266,4 +264,31 @@ func Construct(prs *parser) (instructions []Instruction) {
 	instructions = append(instructions, methodDefinitionBodies...)
 
 	return instructions
+}
+
+func ValuesToTokenList(file string, values ...string) tokenizer.TokenList {
+	return tokenizer.TokenizeContent(file, strings.Join(values, " "))
+}
+func CreateMockAssignment(file string, newVar bool, ident string, tokens tokenizer.TokenList) (block lexer.Block) {
+	block = lexer.NewBlock(lexer.Assignment)
+
+	block.Items = []lexer.Item{
+		{Typ: lexer.Identifier,
+			Tokens: append(tokenizer.NewTokenList(), tokenizer.NewToken(file, tokenizer.Text, []rune(ident), 0, 5)),
+		},
+		{Typ: lexer.Operator,
+			Tokens: append(tokenizer.NewTokenList(), tokenizer.NewToken(file, tokenizer.Text, []rune("="), 0, len(ident)+2)),
+		},
+		{Typ: lexer.Value,
+			Tokens: tokens,
+		},
+	}
+
+	if newVar {
+		block.Items = append([]lexer.Item{lexer.Item{Typ: lexer.Keyword,
+			Tokens: append(tokenizer.NewTokenList(), tokenizer.NewToken(file, tokenizer.Text, []rune("var"), 0, 1)),
+		}}, block.Items...)
+	}
+
+	return block
 }

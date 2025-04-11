@@ -23,9 +23,6 @@ var testCases [][]string = [][]string{
 func main() {
 	fmt.Printf("\n\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
 
-	// debug.SetMaxStack(64)
-	// debug.SetMaxThreads(1)
-
 	for _, testCase := range testCases {
 		parser.InitializeScope()
 		compiler.CompileFile(testCase[0], testCase[1])
