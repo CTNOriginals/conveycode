@@ -5,6 +5,7 @@ import (
 	"conveycode/compiler/syntax"
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
+	"conveycode/constents"
 	"fmt"
 	"strings"
 
@@ -220,7 +221,7 @@ func init() {
 			}
 
 			instructions = append(instructions,
-				NewInstruction("set", def.scope.GetIdentifierLabel("caller-adress"), "<RETURN_LINE>"),
+				NewInstruction("set", def.scope.GetIdentifierLabel("caller-adress"), constents.ReturnLinePlaceholder),
 				NewInstruction("jump", def.getMethodLabel(*scope), "always"),
 			)
 
@@ -250,7 +251,6 @@ func Construct(prs *parser) (instructions []Instruction) {
 
 		//- Does the block type have a constructor defined
 		if !ok {
-			// fmt.Printf("%s is not yet defined as a constructor\n", block.Typ)
 			continue
 		}
 
@@ -262,6 +262,16 @@ func Construct(prs *parser) (instructions []Instruction) {
 	}
 
 	instructions = append(instructions, methodDefinitionBodies...)
+
+	//? Check each line and replace the <RETURN_LINE> parts with the correct line number
+	for i, instruction := range instructions {
+		var lineNum = i + 1
+		for j, part := range instruction.Parts {
+			if part == constents.ReturnLinePlaceholder {
+				instruction.Parts[j] = fmt.Sprint(lineNum + 2)
+			}
+		}
+	}
 
 	return instructions
 }
