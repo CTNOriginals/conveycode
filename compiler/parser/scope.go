@@ -111,6 +111,19 @@ func (this Scope) GetMethodByIdentifier(ident string) methodDefinition {
 	return NewMethodDefinition(lexer.NewBlock(lexer.BlockError))
 }
 
+func (this *Scope) getVariableOrigin(ident string) (variableDef variableDefinition) {
+	var parentScope = this
+	variableDef = parentScope.GetVariableByIdentifier(ident)
+	// fmt.Println("Search:", ident, parentScope.variables, parentScope.GetVariableByIdentifier(ident))
+
+	for variableDef.IsError() && parentScope.context != Global {
+		parentScope = parentScope.getParentScope()
+		variableDef = parentScope.GetVariableByIdentifier(ident)
+	}
+
+	return variableDef
+}
+
 func (this Scope) GetLabelPrefix() string {
 	return fmt.Sprintf("%s%d", this.context, this.id)
 }

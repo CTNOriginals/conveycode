@@ -50,3 +50,7 @@ func (this variableDefinition) String() string {
 func (this variableDefinition) IsError() bool {
 	return this.block.IsError()
 }
+
+func (this variableDefinition) AsLabel() string {
+	return this.scope.GetIdentifierLabel(this.ident)
+}

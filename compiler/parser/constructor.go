@@ -17,40 +17,47 @@ type Constructor = func(block lexer.Block, scope *Scope) (instructions []Instruc
 type ConstructorMap = map[lexer.BlockType]Constructor
 
 var constructors ConstructorMap
-var methodDefinitionBodies []Instruction
+var methodDefinitionBodies map[string][]Instruction
 
-var instructionSpacing = true //? for debugging readability
+var instructionSpacing = false //? for debugging readability
 
 func init() {
+	methodDefinitionBodies = map[string][]Instruction{}
 	constructors = ConstructorMap{
 		lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var prefix = "set"
+
+			var ident = block.GetIdentifier()
 			var itemIdent = block.FindItemByType(lexer.Identifier)
+			var identOrigin = scope.getVariableOrigin(ident)
+
 			var valDef = NewValueDefinitionFromBlock(block, lexer.Value, scope)
-			var label = scope.GetIdentifierLabel(itemIdent.ValueString())
+			var label = scope.GetIdentifierLabel(ident)
 
 			//- Validation
 			if block.FindItemByType(lexer.Keyword).Typ != lexer.ItemError {
-				if scope.ContainsVariable(itemIdent.ValueString()) {
-					var itemIdent = block.FindItemByType(lexer.Identifier)
-					var origVar = scope.GetVariableByIdentifier(itemIdent.ValueString())
+				if scope.ContainsVariable(ident) {
+					var origVar = scope.GetVariableByIdentifier(ident)
 					panic(block.ErrorF(
 						itemIdent,
 						"Variable '%s' has already been declared at %s:%s",
-						color.InBlue(itemIdent.ValueString()),
+						color.InBlue(ident),
 						color.InYellow(origVar.block.BlockLine()),
 						color.InYellow(origVar.block.FindItemByType(lexer.Identifier).ItemColumn()),
 					))
 				} else {
 					scope.PushVariable(block)
 				}
-			} else if !scope.ContainsVariable(itemIdent.ValueString()) {
-				var itemIdent = block.FindItemByType(lexer.Identifier)
-				panic(block.ErrorF(
-					itemIdent,
-					"Variable '%s' has not been declared",
-					color.InBlue(itemIdent.ValueString()),
-				))
+			} else {
+				if identOrigin.ident == constents.StringError {
+					panic(block.ErrorF(
+						itemIdent,
+						"Variable '%s' has not been declared",
+						color.InBlue(itemIdent.ValueString()),
+					))
+				} else {
+					label = identOrigin.AsLabel()
+				}
 			}
 
 			//- Is the value a math operation of some sort?
@@ -160,15 +167,16 @@ func init() {
 			return instructions
 		},
 		lexer.Method: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+			var ident = block.GetIdentifier()
 			var identItem = block.FindItemByType(lexer.Identifier)
 
 			//- Is this method already defined anywhere?
 			if scope.ContainsMethod(block) {
-				var orig = scope.GetMethodByIdentifier(identItem.ValueString())
+				var orig = scope.GetMethodByIdentifier(ident)
 				panic(block.ErrorF(
 					identItem,
 					"Method '%s' has already be defined on line %s",
-					color.InPurple(identItem.ValueString()),
+					color.InPurple(ident),
 					color.InYellow(orig.block.FindItemByType(lexer.Identifier).ItemLine()),
 				))
 			}
@@ -179,13 +187,18 @@ func init() {
 			var prs = ParseItem(body, def.scope)
 			var methodInstructions = Construct(prs)
 
-			methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(def.getMethodLabel(*scope)+":"))
-			methodDefinitionBodies = append(methodDefinitionBodies, methodInstructions...)
-			methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(
+			methodDefinitionBodies[def.getMethodLabel(*scope)] = append(methodInstructions, NewInstruction(
 				"set",
 				"@counter",
 				fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
 			))
+			// methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(def.getMethodLabel(*scope)+":"))
+			// methodDefinitionBodies = append(methodDefinitionBodies, methodInstructions...)
+			// methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(
+			// 	"set",
+			// 	"@counter",
+			// 	fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
+			// ))
 
 			return instructions
 		},
@@ -257,18 +270,26 @@ func Construct(prs *parser) (instructions []Instruction) {
 		instructions = append(instructions, constructor(block, prs.scope)...)
 	}
 
+	//? Make sure this stuff only happens once everything is consturcted, including the sub scopes
 	if prs.scope.context == Global {
 		instructions = append(instructions, NewInstruction("end"))
-	}
+		for label, body := range methodDefinitionBodies {
+			instructions = append(instructions, NewInstruction(label+":"))
+			instructions = append(instructions, body...)
+		}
 
-	instructions = append(instructions, methodDefinitionBodies...)
+		var lineNum = 0
+		//? Check each line and replace the <RETURN_LINE> parts with the correct line number
+		for _, instruction := range instructions {
+			for j, part := range instruction.Parts {
+				if part == constents.ReturnLinePlaceholder {
+					instruction.Parts[j] = fmt.Sprint(lineNum + 2)
+				}
+			}
 
-	//? Check each line and replace the <RETURN_LINE> parts with the correct line number
-	for i, instruction := range instructions {
-		var lineNum = i + 1
-		for j, part := range instruction.Parts {
-			if part == constents.ReturnLinePlaceholder {
-				instruction.Parts[j] = fmt.Sprint(lineNum + 2)
+			//? Labels will be removed once the compiled code is pasted into mindustry, so dont count those lines
+			if !instruction.isLabel() {
+				lineNum++
 			}
 		}
 	}

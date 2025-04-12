@@ -39,19 +39,6 @@ func ConvertAllToValueDefinition(block lexer.Block, valueType lexer.ItemType, sc
 	return defList
 }
 
-func (this valueDefinition) getVariableOrigin(ident string) (variableDef variableDefinition) {
-	var parentScope = this.scope
-	variableDef = parentScope.GetVariableByIdentifier(ident)
-	// fmt.Println("Search:", ident, parentScope.variables, parentScope.GetVariableByIdentifier(ident))
-
-	for variableDef.IsError() && parentScope.context != Global {
-		parentScope = parentScope.getParentScope()
-		variableDef = parentScope.GetVariableByIdentifier(ident)
-	}
-
-	return variableDef
-}
-
 func (this valueDefinition) getValidated() (validated lexer.Item) {
 	for _, token := range this.item.Tokens {
 		if token.Typ != tokenizer.Text {
@@ -59,7 +46,7 @@ func (this valueDefinition) getValidated() (validated lexer.Item) {
 			continue
 		}
 
-		var variableDef = this.getVariableOrigin(string(token.Val))
+		var variableDef = this.scope.getVariableOrigin(string(token.Val))
 
 		if variableDef.IsError() {
 			panic(this.block.ErrorF(
