@@ -2,7 +2,7 @@ package parser
 
 import (
 	"conveycode/compiler/lexer"
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 )
 
@@ -61,7 +61,7 @@ func (this Scope) String() string {
 // #region Psuh
 func (this *Scope) PushVariable(block lexer.Block) {
 	var ident = block.GetIdentifier()
-	if ident == internal.StringError {
+	if ident == constents.StringError {
 		return
 	}
 	this.variables[block.GetIdentifier()] = NewVariableDefinition(block, this)

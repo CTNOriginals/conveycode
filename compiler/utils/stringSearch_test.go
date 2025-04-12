@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 	"testing"
 
@@ -18,22 +18,22 @@ func Test_stringSearch(t *testing.T) {
 	var cases = map[string][]stringSearch_cases{
 		"C:/conveycode/compiler\\parser/construct_or.go:420({0x000015200?, 0x0?})": {
 			{
-				valid:  internal.WordCharacters + "./\\",
+				valid:  constents.WordCharacters + "./\\",
 				index:  2,
 				expect: "/conveycode/compiler\\parser/construct_or.go",
 			},
 			{
-				valid:  internal.WordCharacters,
+				valid:  constents.WordCharacters,
 				index:  30,
 				expect: "construct_or",
 			},
 			{
-				valid:  internal.Numbers + ":",
+				valid:  constents.Numbers + ":",
 				index:  3,
 				expect: ":420",
 			},
 			{
-				valid:  "({})x,? " + internal.Numbers,
+				valid:  "({})x,? " + constents.Numbers,
 				index:  0,
 				expect: "420({0x000015200?, 0x0?})",
 			},

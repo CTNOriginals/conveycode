@@ -2,7 +2,7 @@ package utils
 
 import (
 	"bytes"
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -17,7 +17,7 @@ func PrintStackTrace(offset int) {
 	var stack = debug.Stack()
 	//? Remove the fers few lines that contain the traces that lead here that
 	var stackLines = bytes.Split(stack, seperator)[offset:]
-	var rootPath = strings.ReplaceAll(internal.RootPath, "\\", "/")
+	var rootPath = strings.ReplaceAll(constents.RootPath, "\\", "/")
 
 	var lines = make([]string, len(stackLines))
 
@@ -25,7 +25,7 @@ func PrintStackTrace(offset int) {
 		if len(byteLine) == 0 {
 			continue
 		}
-		var line = strings.ReplaceAll(string(byteLine), rootPath, internal.ProjectName)
+		var line = strings.ReplaceAll(string(byteLine), rootPath, constents.ProjectName)
 		var filePath = ParseFilePath(line)
 
 		if strings.HasPrefix(line, "\t") {
@@ -48,5 +48,5 @@ func PrintStackTrace(offset int) {
 		lines[i] = line
 	}
 
-	fmt.Println(strings.ReplaceAll(strings.Join(lines, string(seperator)), rootPath, internal.ProjectName))
+	fmt.Println(strings.ReplaceAll(strings.Join(lines, string(seperator)), rootPath, constents.ProjectName))
 }

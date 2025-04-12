@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 	"strconv"
 	"strings"
@@ -61,7 +61,7 @@ func ParseFilePath(path string) parsedFilePath {
 
 	//#region File
 	var file = obj.Split[len(obj.Split)-1]
-	rStart, rEnd := GetValidStringRange(file, internal.FileNameCharacters, 0)
+	rStart, rEnd := GetValidStringRange(file, constents.FileNameCharacters, 0)
 
 	if rStart+rEnd == 0 {
 		panic(fmt.Sprintf("Invalid file '%s'", file))
@@ -77,7 +77,7 @@ func ParseFilePath(path string) parsedFilePath {
 		obj.Name = strings.Join(fileSplit[:len(fileSplit)-1], ".")
 
 		var trail = fileSplit[len(fileSplit)-1]
-		rStart, rEnd := GetValidStringRange(trail, internal.AlphaNumaric, 0)
+		rStart, rEnd := GetValidStringRange(trail, constents.AlphaNumaric, 0)
 
 		if rStart+rEnd > 0 {
 			obj.Ext = trail[rStart:rEnd]
@@ -91,7 +91,7 @@ func ParseFilePath(path string) parsedFilePath {
 	//#region Line + Colmn
 	//- Make sure there is nothing between the extension and the colon before the line number
 	if len(obj.Trail) > 0 && rune(obj.Trail[0]) == ':' {
-		rStart, rEnd := GetValidStringRange(obj.Trail, internal.Numbers+":", 1)
+		rStart, rEnd := GetValidStringRange(obj.Trail, constents.Numbers+":", 1)
 		if rStart+rEnd > 0 {
 			var loc = obj.Trail[rStart:rEnd]
 			var locSplit = strings.Split(loc, ":")

@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 
 	"github.com/TwiN/go-color"
@@ -71,7 +71,7 @@ func (this Item) Compare(other Item) bool {
 
 func (this Item) ItemFile() string {
 	if this.IsError() || len(this.Tokens) == 0 {
-		return internal.StringError
+		return constents.StringError
 	}
 	return this.Tokens[0].File
 }

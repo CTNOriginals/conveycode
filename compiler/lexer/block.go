@@ -2,7 +2,7 @@ package lexer
 
 import (
 	"conveycode/compiler/tokenizer"
-	"conveycode/internal"
+	"conveycode/constents"
 	"fmt"
 	"strings"
 
@@ -80,7 +80,7 @@ func (this Block) FindItemByType(typ ItemType) Item {
 // Returns the first identifier found in the block if present
 func (this Block) GetIdentifier() (item string) {
 	if this.FindItemByType(Identifier).IsError() {
-		return internal.StringError
+		return constents.StringError
 	}
 	return this.FindItemByType(Identifier).ValueString()
 }
