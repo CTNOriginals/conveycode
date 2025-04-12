@@ -60,9 +60,37 @@ func (this TokenType) String() string {
 }
 
 var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Text}
+var OpenBracketTypes = []TokenType{RoundL, SquareL, CurlyL}
+var CloseBracketTypes = []TokenType{RoundR, SquareR, CurlyR}
 
 func (this TokenType) IsValue() bool {
 	return slices.Contains(ValueTokenTypes, this)
+}
+func (this TokenType) IsOpenBracket() bool {
+	return slices.Contains(OpenBracketTypes, this)
+}
+func (this TokenType) IsCloseBracket() bool {
+	return slices.Contains(CloseBracketTypes, this)
+}
+
+func (this TokenType) GetMatchingBracket() TokenType {
+	switch this {
+	case RoundL:
+		return RoundR
+	case SquareL:
+		return SquareR
+	case CurlyL:
+		return CurlyR
+
+	case RoundR:
+		return RoundL
+	case SquareR:
+		return SquareL
+	case CurlyR:
+		return CurlyL
+	}
+
+	return 0
 }
 
 // #region Token
@@ -86,6 +114,14 @@ func NewToken(file string, typ TokenType, val []rune, line int, col int) Token {
 
 func (this Token) String() string {
 	return fmt.Sprintf("%s:%s %s: %s", color.InYellow(this.Line), color.InYellow(this.Column), color.InGreen(this.Typ), string(this.Val))
+}
+
+func (this Token) Compare(other Token) bool {
+	return this.Typ == other.Typ &&
+		string(this.Val) == string(other.Val) &&
+		this.File == other.File &&
+		this.Line == other.Line &&
+		this.Column == other.Column
 }
 
 func (this Token) GetTypeColor() string {

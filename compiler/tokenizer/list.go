@@ -7,8 +7,8 @@ import (
 
 type TokenList []Token
 
-func NewTokenList() TokenList {
-	return make(TokenList, 0)
+func NewTokenList(tokens ...Token) TokenList {
+	return tokens
 }
 
 func (this TokenList) String() (str string) {
@@ -102,7 +102,46 @@ func (this TokenList) JoinValues(seperator string) string {
 	return strings.Join(this.ValuesAsStringArray(), seperator)
 }
 
-// type TokenList []Token
 func (this *TokenList) Remove(start int, count int) {
 	*this = slices.Delete(*this, start, start+count)
+}
+
+func (this TokenList) IndexOf(target Token) int {
+	for i, token := range this {
+		if token.Compare(target) {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func (this TokenList) GetMatchingBracketIndex(start int) int {
+	var openBracket TokenType = 0
+	var closeBracket TokenType
+	var depth = 0
+
+	for i := start; i < len(this); i++ {
+		var token = this[i]
+
+		if openBracket == 0 {
+			if token.Typ.IsOpenBracket() {
+				openBracket = token.Typ
+				closeBracket = openBracket.GetMatchingBracket()
+			}
+			continue
+		}
+
+		if token.Typ == closeBracket {
+			if depth == 0 {
+				return i
+			} else {
+				depth--
+			}
+		} else if token.Typ == openBracket {
+			depth++
+		}
+	}
+
+	return -1
 }

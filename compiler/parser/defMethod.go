@@ -63,8 +63,12 @@ func NewMethodDefinition(block lexer.Block) (def methodDefinition) {
 	return def
 }
 
-func (this methodDefinition) getMethodLabel(scope Scope) (label string) {
-	return scope.GetIdentifierLabel(this.scope.GetLabelPrefix())
+func (this methodDefinition) MethodIsError() bool {
+	return this.block.IsError()
+}
+
+func (this methodDefinition) getMethodLabel() (label string) {
+	return this.scope.getParentScope().GetIdentifierLabel(this.scope.GetLabelPrefix())
 }
 
 func (this methodDefinition) getParamLabels() (labels []string) {

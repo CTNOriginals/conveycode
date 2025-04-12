@@ -224,16 +224,7 @@ func (this *lexer) expect(valid ...tokenizer.TokenType) {
 
 func (this *lexer) wrapScope() {
 	var openBracket = this.peekBack().Typ
-	var closeBracket tokenizer.TokenType
-
-	switch openBracket {
-	case tokenizer.RoundL:
-		closeBracket = tokenizer.RoundR
-	case tokenizer.SquareL:
-		closeBracket = tokenizer.SquareR
-	case tokenizer.CurlyL:
-		closeBracket = tokenizer.CurlyR
-	}
+	var closeBracket tokenizer.TokenType = openBracket.GetMatchingBracket()
 
 	var depth = 0
 	var response = this.acceptUntilFunc(func(token tokenizer.Token) bool {

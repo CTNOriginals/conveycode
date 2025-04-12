@@ -28,7 +28,3 @@ func ParseContent(file string, content string, scope *Scope) (prs *parser) {
 func ParseItem(item lexer.Item, scope *Scope) (prs *parser) {
 	return Parse(lexer.Lex(item.Tokens).Construct(), scope)
 }
-
-func (this parser) getBlock(index int) lexer.Block {
-	return this.blocks[index]
-}

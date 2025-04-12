@@ -31,7 +31,7 @@ func init() {
 			var itemIdent = block.FindItemByType(lexer.Identifier)
 			var identOrigin = scope.getVariableOrigin(ident)
 
-			var valDef = NewValueDefinitionFromBlock(block, lexer.Value, scope)
+			var def = NewValueDefinitionFromBlock(block, lexer.Value, scope)
 			var label = scope.GetIdentifierLabel(ident)
 
 			//- Validation
@@ -61,8 +61,8 @@ func init() {
 			}
 
 			//- Is the value a math operation of some sort?
-			if valDef.item.Tokens.Contains(tokenizer.Operator) {
-				for _, token := range valDef.item.Tokens {
+			if def.item.Tokens.Contains(tokenizer.Operator) {
+				for _, token := range def.item.Tokens {
 					if token.Typ == tokenizer.Operator {
 						ope, ok := syntax.MathOperators[string(token.Val)]
 
@@ -72,7 +72,7 @@ func init() {
 						}
 
 						var instruction = NewInstruction("op", ope, label)
-						instruction.Push(valDef.valuesOnly().Tokens.ValuesAsStringArray()...)
+						instruction.Push(def.valuesOnly().Tokens.ValuesAsStringArray()...)
 
 						instructions = append(instructions, instruction)
 					}
@@ -81,12 +81,17 @@ func init() {
 				return instructions
 			}
 
-			return []Instruction{NewInstruction(prefix, label, valDef.valuesOnly().ValueString())}
+			instructions = append(instructions, def.getValueInstructions()...)
+			instructions = append(instructions, NewInstruction(prefix, label, def.valuesOnly().ValueString()))
+
+			return instructions
 		},
 		lexer.BuiltIn: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
 			var valueDef = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
 			var args = valueDef.rawValues()
+
+			instructions = append(instructions, valueDef.getValueInstructions()...)
 
 			for _, arg := range args {
 				instructions = append(instructions, NewInstruction(syntax.Commands[command], arg))
@@ -187,25 +192,18 @@ func init() {
 			var prs = ParseItem(body, def.scope)
 			var methodInstructions = Construct(prs)
 
-			methodDefinitionBodies[def.getMethodLabel(*scope)] = append(methodInstructions, NewInstruction(
+			methodDefinitionBodies[def.getMethodLabel()] = append(methodInstructions, NewInstruction(
 				"set",
 				"@counter",
 				fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
 			))
-			// methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(def.getMethodLabel(*scope)+":"))
-			// methodDefinitionBodies = append(methodDefinitionBodies, methodInstructions...)
-			// methodDefinitionBodies = append(methodDefinitionBodies, NewInstruction(
-			// 	"set",
-			// 	"@counter",
-			// 	fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
-			// ))
 
 			return instructions
 		},
 		lexer.Call: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
 			var ident = block.GetIdentifier()
 
-			var def = scope.GetMethodByIdentifier(ident)
+			var def = scope.getMethodOrigin(ident)
 			var method = def.block
 
 			if method.IsError() {
@@ -229,13 +227,14 @@ func init() {
 			}
 
 			var paramLabels = def.getParamLabels()
-			for i, arg := range block.GetArguments() {
+			var args = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
+			for i, arg := range args.rawValues() {
 				instructions = append(instructions, NewInstruction("set", paramLabels[i], arg))
 			}
 
 			instructions = append(instructions,
 				NewInstruction("set", def.scope.GetIdentifierLabel("caller-adress"), constents.ReturnLinePlaceholder),
-				NewInstruction("jump", def.getMethodLabel(*scope), "always"),
+				NewInstruction("jump", def.getMethodLabel(), "always"),
 			)
 
 			return instructions
@@ -246,10 +245,15 @@ func init() {
 			// var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
 			var mockAssignment = CreateMockAssignment(block.BlockFile(), false, "return", valueDef.item.Tokens)
 
-			return Construct(Parse([]lexer.Block{mockAssignment}, valueDef.scope))
+			instructions = append(instructions, valueDef.getValueInstructions()...)
+			instructions = append(instructions, Construct(Parse([]lexer.Block{mockAssignment}, valueDef.scope))...)
+
+			return
 		},
 	}
 }
+
+var initialCaller *parser = nil
 
 func Construct(prs *parser) (instructions []Instruction) {
 	defer func() {
@@ -258,6 +262,10 @@ func Construct(prs *parser) (instructions []Instruction) {
 			utils.PrintStackTrace(9)
 		}
 	}()
+
+	if initialCaller == nil {
+		initialCaller = prs
+	}
 
 	for _, block := range prs.blocks {
 		var constructor, ok = constructors[block.Typ]
@@ -271,8 +279,9 @@ func Construct(prs *parser) (instructions []Instruction) {
 	}
 
 	//? Make sure this stuff only happens once everything is consturcted, including the sub scopes
-	if prs.scope.context == Global {
+	if initialCaller == prs {
 		instructions = append(instructions, NewInstruction("end"))
+
 		for label, body := range methodDefinitionBodies {
 			instructions = append(instructions, NewInstruction(label+":"))
 			instructions = append(instructions, body...)
@@ -300,6 +309,7 @@ func Construct(prs *parser) (instructions []Instruction) {
 func ValuesToTokenList(file string, values ...string) tokenizer.TokenList {
 	return tokenizer.TokenizeContent(file, strings.Join(values, " "))
 }
+
 func CreateMockAssignment(file string, newVar bool, ident string, tokens tokenizer.TokenList) (block lexer.Block) {
 	block = lexer.NewBlock(lexer.Assignment)
 
@@ -319,6 +329,21 @@ func CreateMockAssignment(file string, newVar bool, ident string, tokens tokeniz
 		block.Items = append([]lexer.Item{lexer.Item{Typ: lexer.Keyword,
 			Tokens: append(tokenizer.NewTokenList(), tokenizer.NewToken(file, tokenizer.Text, []rune("var"), 0, 1)),
 		}}, block.Items...)
+	}
+
+	return block
+}
+
+func CreateMockMethodCall(file string, ident tokenizer.Token, args tokenizer.TokenList) (block lexer.Block) {
+	block = lexer.NewBlock(lexer.Call)
+
+	block.Items = []lexer.Item{
+		{Typ: lexer.Identifier,
+			Tokens: append(tokenizer.NewTokenList(), ident),
+		},
+		{Typ: lexer.Arguments,
+			Tokens: args,
+		},
 	}
 
 	return block
