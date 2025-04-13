@@ -6,13 +6,22 @@ import (
 	"strings"
 )
 
+const Development = true
+
+// General String Constents
+const (
+	FileExtension         = "conv"
+	CompiledFileExtention = "mlog"
+)
+
 // String Characters
 const (
-	Alphabet           = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	Numbers            = "1234567890"
-	AlphaNumaric       = Alphabet + Numbers
-	WordCharacters     = AlphaNumaric + "_"
-	FileNameCharacters = WordCharacters + " -."
+	Alphabet            = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	Numbers             = "1234567890"
+	AlphaNumaric        = Alphabet + Numbers
+	WordCharacters      = AlphaNumaric + "_"
+	FileNameCharacters  = WordCharacters + " -."
+	DirectoryCharacters = FileNameCharacters + "/\\"
 )
 
 // String Flags

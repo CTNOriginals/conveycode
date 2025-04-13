@@ -9,7 +9,7 @@ import (
 	"github.com/TwiN/go-color"
 )
 
-type parsedFilePath struct {
+type ParsedFilePath struct {
 	Raw string
 	// The full path split by '/'
 	Split []string
@@ -33,7 +33,7 @@ type parsedFilePath struct {
 	Trail string
 }
 
-func (this parsedFilePath) String() string {
+func (this ParsedFilePath) String() string {
 	var lines []string
 	var values = StructValues(this)
 	for i, key := range StructKeys(this) {
@@ -44,10 +44,10 @@ func (this parsedFilePath) String() string {
 }
 
 // Parses the file path into a file path struct
-func ParseFilePath(path string) parsedFilePath {
+func ParseFilePath(path string) ParsedFilePath {
 	path = strings.ReplaceAll(path, "\\", "/")
 
-	var obj = parsedFilePath{
+	var obj = ParsedFilePath{
 		Raw:   path,
 		Split: strings.Split(path, "/"),
 	}

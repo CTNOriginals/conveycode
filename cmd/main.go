@@ -3,7 +3,9 @@ package main
 import (
 	"conveycode/compiler"
 	"conveycode/compiler/parser"
+	"conveycode/constents"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/TwiN/go-color"
@@ -21,12 +23,24 @@ var testCases [][]string = [][]string{
 }
 
 func main() {
-	fmt.Printf("\n\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
-
-	for _, testCase := range testCases {
-		parser.InitializeScope()
-		compiler.CompileFile(testCase[0], testCase[1])
+	if constents.Development {
+		executeDevelopmentTests()
+		return
 	}
 
-	// fmt.Printf("\n\n---- End %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
+	Args = NewArguments(os.Args)
+}
+
+func executeDevelopmentTests() {
+	fmt.Printf("\n\n---- Start %s ----\n", color.Colorize(color.Green, time.Now().Format(time.TimeOnly)))
+	Args = NewArguments(mockArgs)
+	fmt.Println(Args)
+
+	parser.InitializeScope()
+	compiler.CompileFile(Args.sourceFile, Args.destFile)
+
+	// for _, testCase := range testCases {
+	// 	parser.InitializeScope()
+	// 	compiler.CompileFile(testCase[0], testCase[1])
+	// }
 }

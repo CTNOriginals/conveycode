@@ -1,11 +1,10 @@
 package utils
 
 import (
-	"bufio"
+	"conveycode/constents"
 	"fmt"
 	"log"
 	"os"
-	"slices"
 	"strings"
 )
 
@@ -24,20 +23,26 @@ func GetFileName(filePath string) string {
 	return strings.Join(split[:len(split)-1], ".")
 }
 
-func GetFileLines(filePath string) []string {
-	file := getFile(filePath)
-	defer file.Close()
+func FileExists(filePath string) bool {
+	info, err := os.Stat(filePath)
 
-	fileScanner := bufio.NewScanner(file)
-	fileScanner.Split(bufio.ScanLines)
-
-	var lines []string
-
-	for fileScanner.Scan() {
-		lines = append(lines, fileScanner.Text())
+	if os.IsNotExist(err) {
+		return false
 	}
 
-	return lines
+	return !info.IsDir()
+}
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
+
+func IsValidFileName(name string) bool {
+	return ValidateString(name, constents.FileNameCharacters)
+}
+func IsValidDirectoryPath(path string) bool {
+	return ValidateString(path, constents.DirectoryCharacters)
 }
 
 func GetFileRunes(filePath string) []rune {
@@ -55,16 +60,13 @@ func GetFileRunes(filePath string) []rune {
 	return ret
 }
 
-func WriteFile(fileName string, destPath string, lines []string) {
-	fileChars := strings.Split(destPath, "")
-	if !slices.Contains([]string{"/", "\\"}, fileChars[len(fileChars)-1]) {
-		destPath += "/"
-	}
+func WriteFile(path string, lines []string) {
+	var filePath = ParseFilePath(path)
 
 	//? Make destination dir to make sure it exists
-	_ = os.MkdirAll(destPath, 0666)
+	_ = os.MkdirAll(filePath.Path, 0666)
 
-	file, err := os.Create(destPath + fileName + ".mlog")
+	file, err := os.Create(fmt.Sprintf("%s/%s.mlog", filePath.Path, filePath.Name))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,13 +77,4 @@ func WriteFile(fileName string, destPath string, lines []string) {
 			log.Fatal(err)
 		}
 	}
-}
-
-func getFile(filePath string) *os.File {
-	readFile, err := os.Open(filePath)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	return readFile
 }

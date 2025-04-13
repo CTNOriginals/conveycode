@@ -39,3 +39,8 @@ func GetValidStringRange(heystack string, valid string, startIndex int) (start i
 
 	return start, len(heystack) //? Dont substract 1 to account for slices end range non-inclusivity
 }
+
+func ValidateString(heystack string, valid string) bool {
+	start, end := GetValidStringRange(heystack, valid, 0)
+	return start == 0 && end == len(heystack)
+}
