@@ -21,6 +21,7 @@ const (
 	Seperator
 	Command
 	Link
+	Constent
 
 	RoundL
 	RoundR
@@ -59,7 +60,7 @@ func (this TokenType) String() string {
 	}[this-1]
 }
 
-var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Text}
+var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Constent, Text}
 var OpenBracketTypes = []TokenType{RoundL, SquareL, CurlyL}
 var CloseBracketTypes = []TokenType{RoundR, SquareR, CurlyR}
 

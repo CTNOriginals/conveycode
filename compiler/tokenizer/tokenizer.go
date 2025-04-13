@@ -151,7 +151,7 @@ var handlers = handlerMap{
 
 	Link: {
 		test: func(cursor *Cursor) bool {
-			return cursor.Peek() == '@'
+			return cursor.Peek() == '#'
 		},
 		handle: func(cursor *Cursor) (v []rune) {
 			cursor.Read()
@@ -159,6 +159,21 @@ var handlers = handlerMap{
 			return cursor.ReadUntilFunc(func(c rune) bool {
 				return !regStream.MatchString(string(c))
 			})
+		},
+	},
+
+	Constent: {
+		test: func(cursor *Cursor) bool {
+			return cursor.Peek() == '@'
+		},
+		handle: func(cursor *Cursor) (v []rune) {
+			v = append(v, cursor.Read())
+
+			v = append(v, cursor.ReadUntilFunc(func(c rune) bool {
+				return !regStream.MatchString(string(c))
+			})...)
+
+			return v
 		},
 	},
 
