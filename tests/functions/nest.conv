@@ -15,14 +15,5 @@ func func1() {
 }
 
 func1()
-$flush("message1")
 
-func foo(arg1, arg2) {
-	$print("foo", arg1, arg2)
-	if (arg1 >= 5) {
-		return arg1
-	}
-}
-
-foo(4, 8)
-$flush(@message1)
+$flush(#message1)
