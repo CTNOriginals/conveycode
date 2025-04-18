@@ -11,6 +11,8 @@ import (
 	"github.com/TwiN/go-color"
 )
 
+var VERSION = "v0.0.0"
+
 var testCases [][]string = [][]string{
 	// {"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
 	// {"tests/print/print.conv", "tests/print/compiled/"},
@@ -23,6 +25,7 @@ var testCases [][]string = [][]string{
 }
 
 func main() {
+	constents.VERSION = VERSION
 	if constents.Development {
 		executeDevelopmentTests()
 		return

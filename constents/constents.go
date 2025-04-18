@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var VERSION = "v0.0.0"
+
 const Development = true
 
 // General String Constents
