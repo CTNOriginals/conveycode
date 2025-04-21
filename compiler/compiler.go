@@ -5,6 +5,7 @@ import (
 	"conveycode/compiler/parser"
 	"conveycode/compiler/tokenizer"
 	"conveycode/compiler/utils"
+	"conveycode/constents"
 	"fmt"
 
 	"github.com/TwiN/go-color"
@@ -12,37 +13,50 @@ import (
 
 func compile(tokens tokenizer.TokenList) []string {
 	//#region Tokenizer
-	fmt.Printf("\n-- %s --\n", color.InBlue("Tokenizer"))
-	for _, token := range tokens {
-		if token.Typ == tokenizer.EOL {
-			fmt.Println("")
-			continue
-		}
+	if constents.LOGGING {
+		fmt.Printf("\n-- %s --\n", color.InBlue("Tokenizer"))
+		for _, token := range tokens {
+			if token.Typ == tokenizer.EOL {
+				fmt.Println("")
+				continue
+			}
 
-		fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
-		// fmt.Printf("%s: %s\n", color.InGreen(token.Typ), token.ColoredValue())
+			fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
+			// fmt.Printf("%s: %s\n", color.InGreen(token.Typ), token.ColoredValue())
+		}
 	}
 	//#endregion
 
 	//#region Lexer
-	fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
+	if constents.LOGGING {
+		fmt.Printf("\n\n-- %s --\n", color.InBlue("Lexer"))
+	}
+
 	var lx = lexer.Lex(tokens)
 	var blocks []lexer.Block = lx.Construct()
 
-	for _, block := range blocks {
-		fmt.Println(block)
+	if constents.LOGGING {
+		for _, block := range blocks {
+			fmt.Println(block)
+		}
 	}
 	//#endregion
 
 	//#region Parser
-	fmt.Printf("-- %s --\n", color.InBlue("Parser"))
+	if constents.LOGGING {
+		fmt.Printf("-- %s --\n", color.InBlue("Parser"))
+	}
+
 	var prs = parser.Parse(blocks, parser.GlobalScope)
 
 	var instructions = parser.Construct(prs)
 	var instructionLines []string
 
 	for _, instruction := range instructions {
-		fmt.Println(instruction)
+		if constents.LOGGING {
+			fmt.Println(instruction)
+		}
+
 		instructionLines = append(instructionLines, instruction.String())
 	}
 	//#endregion

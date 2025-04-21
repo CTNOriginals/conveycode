@@ -2,7 +2,7 @@ GIT_TAG := $(shell git describe --abbrev=0 --tags)
 PATH_VERSION := $(shell git rev-list $(GIT_TAG).. --count)
 GIT_VERSION := "$(GIT_TAG).$(PATH_VERSION)"
 
-.PHONY: build, version, push
+.PHONY: build version push run args
 
 version:
 	@echo $(GIT_VERSION)
@@ -15,3 +15,9 @@ build:
 push:
 	git push
 	git push --tags
+
+run:
+	go run ./cmd/ $(ARGS)
+
+args:
+	$(MAKE) run ARGS="--help"

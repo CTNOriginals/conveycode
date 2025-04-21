@@ -24,15 +24,17 @@ var VERSION = "v0.0.0"
 // 	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
 // }
 
+var Args Arguments
+
 func main() {
 	constents.VERSION = VERSION
+	Args = NewArguments(os.Args)
 
 	if constents.DEVELOPMENT {
 		executeDevelopmentTests()
 		return
 	}
 
-	Args = NewArguments(os.Args)
 	parser.InitializeScope()
 	compiler.CompileFile(Args.sourceFile, Args.destFile)
 }
