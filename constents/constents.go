@@ -8,7 +8,7 @@ import (
 
 var VERSION = "v0.0.0"
 
-const Development = false
+var DEVELOPMENT = true
 
 // General String Constents
 const (

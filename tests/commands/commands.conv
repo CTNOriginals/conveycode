@@ -1,0 +1,38 @@
+var result = 0
+var cell1 = 1
+var clear = 2
+var enabled = 3
+var block1 = 4
+var enemy = 5
+var any = 6
+var distance = 8
+var turret1 = 9
+var item = 10
+var move = 11
+var building = 12
+var core = 13
+var outx = 14
+var outy = 15
+var found = 16
+
+$read(result, cell1, 0)
+$write(result, cell1, 0)
+$draw(clear, 0, 0, 0, 0, 0, 0)
+$print("frog")
+$printchar(65)
+$format("frog")
+$drawflush(#display1)
+$printflush(#message1)
+$getlink(result, 0)
+$control(enabled, block1, 0, 0, 0, 0)
+$radar(enemy, any, any, distance, turret1, 1, result)
+$sensor(result, block1, @copper)
+$lookup(item, result, 0)
+$packcolor(result, 1, 0, 0, 1)
+$wait(0.5)
+$stop()
+$end()
+$ubind(@poly)
+$ucontrol(move, 0, 0, 0, 0, 0)
+$uradar(enemy, any, any, distance, 0, 1, result)
+$ulocate(building, core, true, @copper, outx, outy, found, building)

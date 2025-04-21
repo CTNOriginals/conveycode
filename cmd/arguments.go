@@ -25,8 +25,9 @@ func PrintArgumentSyntax() {
 
 var mockArgs = []string{"script/path/main.go",
 	"tests/prototype/proto.conv",
-	"tests/prototype/result/",
-	"--name", "someName",
+	// "tests/prototype/result/",
+	// "--name", "someName",
+	// "--development",
 }
 
 type Arguments struct {
@@ -43,8 +44,16 @@ func NewArguments(input []string) (args Arguments) {
 		return
 	}
 
+	// if utils.ContainsListItem(input, []string{"--mock"}) {
+	// 	return NewArguments(mockArgs)
+	// }
+
 	if utils.ContainsListItem(input, []string{"help", "--help", "-h", "-H", "?", "-?"}) {
 		PrintArgumentSyntax()
+	}
+
+	if utils.ContainsListItem(input, []string{"--development", "-D"}) {
+		constents.DEVELOPMENT = true
 	}
 
 	var sourcePath = utils.ParseFilePath(input[0])

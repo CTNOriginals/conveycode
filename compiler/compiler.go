@@ -13,15 +13,15 @@ import (
 func compile(tokens tokenizer.TokenList) []string {
 	//#region Tokenizer
 	fmt.Printf("\n-- %s --\n", color.InBlue("Tokenizer"))
-	// for _, token := range tokens {
-	// 	if token.Typ == tokenizer.EOL {
-	// 		fmt.Println("")
-	// 		continue
-	// 	}
+	for _, token := range tokens {
+		if token.Typ == tokenizer.EOL {
+			fmt.Println("")
+			continue
+		}
 
-	// 	fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
-	// 	// fmt.Printf("%s: %s\n", color.InGreen(token.Typ), token.ColoredValue())
-	// }
+		fmt.Print(color.InUnderline(token.ColoredValue()) + " ")
+		// fmt.Printf("%s: %s\n", color.InGreen(token.Typ), token.ColoredValue())
+	}
 	//#endregion
 
 	//#region Lexer
@@ -29,9 +29,9 @@ func compile(tokens tokenizer.TokenList) []string {
 	var lx = lexer.Lex(tokens)
 	var blocks []lexer.Block = lx.Construct()
 
-	// for _, block := range blocks {
-	// 	fmt.Println(block)
-	// }
+	for _, block := range blocks {
+		fmt.Println(block)
+	}
 	//#endregion
 
 	//#region Parser
@@ -42,7 +42,7 @@ func compile(tokens tokenizer.TokenList) []string {
 	var instructionLines []string
 
 	for _, instruction := range instructions {
-		// fmt.Println(instruction)
+		fmt.Println(instruction)
 		instructionLines = append(instructionLines, instruction.String())
 	}
 	//#endregion

@@ -13,25 +13,28 @@ import (
 
 var VERSION = "v0.0.0"
 
-var testCases [][]string = [][]string{
-	// {"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
-	// {"tests/print/print.conv", "tests/print/compiled/"},
-	// {"tests/print/printInterpelate.conv", "tests/print/compiled/"},
-	// {"tests/condition/if.conv", "tests/condition/compiled/"},
-	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
-	// {"tests/condition/elseIf.conv", "tests/condition/compiled/"},
-	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
-	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
-}
+// var testCases [][]string = [][]string{
+// 	// {"tests/assignment/setAdd.conv", "tests/assignment/compiled/"},
+// 	// {"tests/print/print.conv", "tests/print/compiled/"},
+// 	// {"tests/print/printInterpelate.conv", "tests/print/compiled/"},
+// 	// {"tests/condition/if.conv", "tests/condition/compiled/"},
+// 	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
+// 	// {"tests/condition/elseIf.conv", "tests/condition/compiled/"},
+// 	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
+// 	{"tests/prototype/proto.conv", "tests/prototype/compiled/"},
+// }
 
 func main() {
 	constents.VERSION = VERSION
-	if constents.Development {
+
+	if constents.DEVELOPMENT {
 		executeDevelopmentTests()
 		return
 	}
 
 	Args = NewArguments(os.Args)
+	parser.InitializeScope()
+	compiler.CompileFile(Args.sourceFile, Args.destFile)
 }
 
 func executeDevelopmentTests() {

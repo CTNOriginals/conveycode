@@ -93,8 +93,15 @@ func init() {
 
 			instructions = append(instructions, valueDef.getValueInstructions()...)
 
-			for _, arg := range args {
-				instructions = append(instructions, NewInstruction(syntax.Commands[command], arg))
+			switch command {
+			case "print":
+				for _, arg := range args {
+					instructions = append(instructions, NewInstruction(syntax.GetCommandPrefix(command), arg))
+				}
+			default:
+				var instruction = NewInstruction(syntax.GetCommandPrefix(command))
+				instruction.Push(args...)
+				instructions = append(instructions, instruction)
 			}
 
 			return instructions

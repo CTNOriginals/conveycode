@@ -3,8 +3,6 @@ package lexer
 import (
 	"conveycode/compiler/syntax"
 	"conveycode/compiler/tokenizer"
-	"conveycode/compiler/utils"
-	"slices"
 )
 
 type StateFn func(*lexer) StateFn
@@ -133,7 +131,7 @@ func lexCommand(lx *lexer) (state StateFn) {
 		}
 	}()
 
-	if !slices.Contains(utils.Keys(syntax.Commands), string(lx.peekBack().Val)) {
+	if !syntax.IsCommand(string(lx.peekBack().Val)) {
 		return lx.errorf("Unknown command: %s", string(lx.peekBack().Val))
 	}
 

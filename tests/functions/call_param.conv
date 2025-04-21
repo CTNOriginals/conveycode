@@ -1,0 +1,16 @@
+func add(x, y) {
+	return x + y
+}
+
+func sub(x, y) {
+	return x - y
+}
+
+func both(x, y) {
+	return add(x, y) * sub(x, y)
+}
+
+$print(add(8, 4), "\n")
+$print(sub(8, 4), "\n")
+$print(both(8, 4), "\n")
+$flush(#message1)
