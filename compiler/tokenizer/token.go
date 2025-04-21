@@ -15,6 +15,7 @@ const (
 	EOL
 	Comment
 	Boolean
+	Keyword
 	String
 	Number
 	Operator
@@ -40,12 +41,14 @@ func (this TokenType) String() string {
 		"EOL",
 		"Comment",
 		"Boolean",
+		"Keyword",
 		"String",
 		"Number",
 		"Operator",
 		"Seperator",
 		"Command",
 		"Link",
+		"Constent",
 
 		"RoundL",
 		"RoundR",
@@ -60,7 +63,7 @@ func (this TokenType) String() string {
 	}[this-1]
 }
 
-var ValueTokenTypes = []TokenType{String, Number, Boolean, Link, Constent, Text}
+var ValueTokenTypes = []TokenType{Boolean, Keyword, String, Number, Link, Constent, Text}
 var OpenBracketTypes = []TokenType{RoundL, SquareL, CurlyL}
 var CloseBracketTypes = []TokenType{RoundR, SquareR, CurlyR}
 

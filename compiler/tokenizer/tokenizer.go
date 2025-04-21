@@ -67,6 +67,15 @@ var handlers = handlerMap{
 			return cursor.ReadN(length)
 		},
 	},
+	Keyword: {
+		test: func(cursor *Cursor) bool {
+			//?? There must be a better way to detect this right? this is a bit hacky
+			return string(cursor.PeekRange(4)) == "null"
+		},
+		handle: func(cursor *Cursor) (v []rune) {
+			return cursor.ReadN(4)
+		},
+	},
 	String: {
 		test: func(cursor *Cursor) bool {
 			return slices.Contains([]rune{'"', '\'', '`'}, cursor.Peek()) && cursor.PeekPrev() != '\\'
