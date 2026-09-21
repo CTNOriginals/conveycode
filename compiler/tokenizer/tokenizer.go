@@ -179,7 +179,7 @@ var handlers = handlerMap{
 			v = append(v, cursor.Read())
 
 			v = append(v, cursor.ReadUntilFunc(func(c rune) bool {
-				return !regStream.MatchString(string(c))
+				return !regStream.MatchString(string(c)) && c != '-'
 			})...)
 
 			return v
