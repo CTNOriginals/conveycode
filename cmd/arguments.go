@@ -18,7 +18,7 @@ dest-dir:
 	The destination directory for the compiled .mlog file to go in.
 	If ommited, it will be created in the directory of the <source-file>
 	in a directory called 'compiled'
---name
+--name <file-name>
 	The name of the resulting compiled file
 
 OPTIONS:
@@ -31,10 +31,6 @@ OPTIONS:
 	Logs the tokenizer, lexer and parser results
 `
 
-func PrintArgumentSyntax() {
-	fmt.Println(argumentSyntax)
-}
-
 var mockArgs = []string{"script/path/main.go",
 	"tests/prototype/proto.conv",
 	"--help",
@@ -45,26 +41,54 @@ var mockArgs = []string{"script/path/main.go",
 type Arguments struct {
 	sourceFile string
 	destFile   string
+	// The options that were present
+	options map[string][]string
+}
+
+func (this Arguments) String() string {
+	return fmt.Sprintf("File: %s\nDest: %s\nOptions: %+v", this.sourceFile, this.destFile, this.options)
 }
 
 type argOption struct {
-	flags  []string
-	action func()
+	// The singular name of the option. This is used to identify the option when any of its flags are found
+	name string
+	// An array of possible flags that can trigger this option
+	flags []string
+	// The minimum amount of inputs that are required after this option flag
+	minInputs int
+	// The maximum amount of inputs that are required after this option flag
+	maxInputs int
+	action    func(inputs ...string)
 }
 
 var options = []argOption{
-	{flags: []string{"help", "--help", "-h", "-H", "?", "-?"},
-		action: func() {
-			PrintArgumentSyntax()
+	{
+		name:  "help",
+		flags: []string{"help", "--help", "-H", "?", "-?"},
+		action: func(inputs ...string) {
+			printArgumentSyntax()
 		},
 	},
-	{flags: []string{"--development", "-D"},
-		action: func() {
+	{
+		name:      "name",
+		flags:     []string{"--name"},
+		minInputs: 1,
+		maxInputs: 1,
+		action: func(inputs ...string) {
+			printArgumentSyntax()
+		},
+	},
+	{
+		name:  "development",
+		flags: []string{"--development", "-D"},
+		action: func(inputs ...string) {
 			constents.DEVELOPMENT = true
 		},
 	},
-	{flags: []string{"--log", "-L"},
-		action: func() {
+	{
+		name:  "log",
+		flags: []string{"--log", "-L"},
+		action: func(inputs ...string) {
 			constents.LOGGING = true
 		},
 	},
@@ -75,7 +99,7 @@ func NewArguments(input []string) (args Arguments) {
 	fmt.Println(strings.Join(input, "\n"))
 
 	if len(input) == 0 {
-		PrintArgumentSyntax()
+		printArgumentSyntax()
 		return
 	}
 
@@ -142,4 +166,8 @@ func containsArg(input []string, search []string) (contained bool) {
 	}
 
 	return false
+}
+
+func printArgumentSyntax() {
+	fmt.Println(argumentSyntax)
 }

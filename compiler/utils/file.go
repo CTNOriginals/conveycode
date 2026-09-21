@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -61,12 +62,15 @@ func GetFileRunes(filePath string) []rune {
 }
 
 func WriteFile(path string, lines []string) {
-	var filePath = ParseFilePath(path)
+	// var filePath = ParseFilePath(path)
+	var dir, fileName = filepath.Split(path)
+	var nameSplit = strings.Split(fileName, ".")
+	var name = nameSplit[len(nameSplit)-1]
 
 	//? Make destination dir to make sure it exists
-	_ = os.MkdirAll(filePath.Path, 0666)
+	_ = os.MkdirAll(dir, 0666)
 
-	file, err := os.Create(fmt.Sprintf("%s/%s.mlog", filePath.Path, filePath.Name))
+	file, err := os.Create(fmt.Sprintf("%s/%s.mlog", dir, name))
 	if err != nil {
 		log.Fatal(err)
 	}
