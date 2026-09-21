@@ -19,7 +19,7 @@ type ConstructorMap = map[lexer.BlockType]Constructor
 var constructors ConstructorMap
 var methodDefinitionBodies map[string][]Instruction
 
-var instructionSpacing = false //? for debugging readability
+var instructionSpacing = true //? for debugging readability
 
 func init() {
 	methodDefinitionBodies = map[string][]Instruction{}
@@ -171,7 +171,8 @@ func init() {
 			// TODO Save some space here by checing if the condition does not include a "==="
 			// TODO and if so, invert the last condition and point it to the exit
 			// TODO this way, the last conditional (not else) statement can just flow through to the next line if "true"
-			jumps = append(jumps, exitInstruction)
+			//! BUG: this line below caused the exit instruction to be pasted right after the jump, so the last statement would always be skipped.
+			// jumps = append(jumps, exitInstruction)
 
 			instructions = append(jumps, instructions...)
 			instructions = append(instructions, NewInstruction(exitLabel+":"))
