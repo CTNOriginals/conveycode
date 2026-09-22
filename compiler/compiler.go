@@ -7,6 +7,8 @@ import (
 	"conveycode/compiler/utils"
 	"conveycode/constents"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/TwiN/go-color"
 )
@@ -68,7 +70,38 @@ func compile(tokens tokenizer.TokenList) []string {
 // Compile a .conv file to .mlog
 //
 //	compiler.CompileFile("foo/bar/file.conv", "dest/")
-func CompileFile(sourceFilePath string, dest string) {
-	fmt.Printf("\n-- %s %s --\n", color.InGreen("File"), color.InYellow(sourceFilePath))
-	utils.WriteFile(dest, compile(tokenizer.Tokenize(sourceFilePath)))
+//
+// TODO: fix dest functionality, currently not implemented
+func CompileFile(source string, dest string) {
+	var info, err = os.Stat(source)
+	if err != nil {
+		panic(err)
+	}
+
+	if info.IsDir() {
+		CompileDir(source)
+		return
+	}
+
+	dest = fmt.Sprintf("%s/compiled/%s.mlog", filepath.Dir(source), utils.GetFileName(info.Name()))
+
+	parser.InitializeScope()
+
+	fmt.Printf("\n-- %s %s --\n", color.InGreen("File"), color.InYellow(source))
+	utils.WriteFile(dest, compile(tokenizer.Tokenize(source)))
+}
+
+func CompileDir(source string) {
+	utils.ForEachFileInDirRecursive(source, func(file os.FileInfo, dir string) {
+		var name = file.Name()
+
+		if filepath.Ext(name) != ".conv" {
+			return
+		}
+
+		var s = fmt.Sprintf("%s%s", dir, name)
+		var d = fmt.Sprintf("%scompiled/%s.mlog", dir, utils.GetFileName(name))
+		// fmt.Printf("Compiling: %s > %s\n", s, d)
+		CompileFile(s, d)
+	})
 }
