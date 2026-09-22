@@ -68,7 +68,7 @@ func WriteFile(path string, lines []string) {
 	var name = nameSplit[len(nameSplit)-1]
 
 	//? Make destination dir to make sure it exists
-	_ = os.MkdirAll(dir, 0666)
+	_ = os.MkdirAll(dir, os.ModePerm)
 
 	file, err := os.Create(fmt.Sprintf("%s/%s.mlog", dir, name))
 	if err != nil {
