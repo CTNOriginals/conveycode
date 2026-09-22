@@ -47,7 +47,7 @@ func NewScope(context scopeContext) *Scope {
 }
 
 func InitializeScope() {
-	// scopeCount = 0
+	scopeCount = 0
 	GlobalScope = NewScope(Global)
 	errorVariableDefinition = NewVariableDefinition(lexer.NewBlock(lexer.BlockError), GlobalScope)
 	errorMethodDefinition = NewMethodDefinition(lexer.NewBlock(lexer.BlockError))
