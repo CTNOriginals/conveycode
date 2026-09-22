@@ -20,6 +20,7 @@ var testCases [][]string = [][]string{
 	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
 	// {"tests/condition/elseIf.conv", "tests/condition/compiled/"},
 	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
+	{"tests/functions/nest.conv", "tests/functions/compiled/nest"},
 	{"tests/prototype/proto.conv", "tests/prototype/compiled/proto"},
 }
 

@@ -7,8 +7,8 @@ func func1() {
 	$print("func1")
 	var x = func3()
 
-	func func2(num) {
-		$print("func2: ", num)
+	func func2(fn) {
+		$print("func2: ", fn())
 	}
 
 	func2(x)
