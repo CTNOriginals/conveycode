@@ -15,12 +15,16 @@ import (
 //
 //	getFileName("foo/bar/fileName.ext") // fileName
 //	getFileName("foo/bar/fileName.version.data.ext") // fileName.version.data
-func GetFileName(filePath string) string {
-	filePath = strings.ReplaceAll(filePath, "\\", "/")
-	parts := strings.Split(filePath, "/")
+func GetFileName(path string) string {
+	// filePath = strings.ReplaceAll(filePath, "\\", "/")
+	// parts := strings.Split(filePath, "/")
+	//
+	// file := parts[len(parts)-1]
+	// split := strings.Split(file, ".")
+	// return strings.Join(split[:len(split)-1], ".")
 
-	file := parts[len(parts)-1]
-	split := strings.Split(file, ".")
+	var _, name = filepath.Split(path)
+	var split = strings.Split(name, ".")
 	return strings.Join(split[:len(split)-1], ".")
 }
 
@@ -61,11 +65,12 @@ func GetFileRunes(filePath string) []rune {
 	return ret
 }
 
+// TODO: fix clutter and consistency by
+// assuming path is the correct resulting file path.
 func WriteFile(path string, lines []string) {
 	// var filePath = ParseFilePath(path)
-	var dir, fileName = filepath.Split(path)
-	var nameSplit = strings.Split(fileName, ".")
-	var name = nameSplit[len(nameSplit)-1]
+	var dir, name = filepath.Split(path)
+	name = GetFileName(name)
 
 	//? Make destination dir to make sure it exists
 	_ = os.MkdirAll(dir, os.ModePerm)
