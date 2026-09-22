@@ -50,6 +50,40 @@ func IsValidDirectoryPath(path string) bool {
 	return ValidateString(path, constents.DirectoryCharacters)
 }
 
+// Calls fn for each file in dir.
+// Does not recurse into child directories.
+// Also returns directories.
+func ForEachFileInDir(dir string, fn func(file os.FileInfo)) {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			log.Fatal(err)
+			continue
+		}
+
+		fn(info)
+	}
+}
+
+// Calls fn for each file in dir recursivly
+func ForEachFileInDirRecursive(dir string, fn func(file os.FileInfo, dir string)) {
+	ForEachFileInDir(dir, func(file os.FileInfo) {
+		if file.IsDir() {
+			childDir := fmt.Sprintf("%s/%s", dir, file.Name())
+			ForEachFileInDirRecursive(childDir, fn)
+			return
+		}
+
+		fn(file, dir)
+	})
+}
+
 func GetFileRunes(filePath string) []rune {
 	b, err := os.ReadFile(filePath)
 	if err != nil {
