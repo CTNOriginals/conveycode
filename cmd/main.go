@@ -2,7 +2,6 @@ package main
 
 import (
 	"conveycode/compiler"
-	"conveycode/compiler/parser"
 	"conveycode/constents"
 	"fmt"
 	"time"
@@ -19,7 +18,7 @@ var testCases [][]string = [][]string{
 	// {"tests/condition/if.conv", "tests/condition/compiled/"},
 	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
 	// {"tests/condition/elseIf.conv", "tests/condition/compiled/"},
-	// {"tests/condition/conditions.conv", "tests/condition/compiled/"},
+	{"tests/condition/", "tests/condition/compiled/"},
 	{"tests/functions/nest.conv", "tests/functions/compiled/nest"},
 	{"tests/prototype/proto.conv", "tests/prototype/compiled/proto"},
 }
@@ -44,7 +43,7 @@ func executeDevelopmentTests() {
 	// Args = NewArguments(mockArgs)
 	// fmt.Println(Args)
 
-	parser.InitializeScope()
+	// parser.InitializeScope()
 	// compiler.CompileFile(Args.sourceFile, Args.destFile)
 
 	for _, testCase := range testCases {

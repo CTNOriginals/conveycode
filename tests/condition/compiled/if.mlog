@@ -1,8 +1,7 @@
 set global0_x true
-jump global0_statement1 equal global0_x true
-jump global0_statement1_exit always
-global0_statement1:
+jump global0_statement2 equal global0_x true
+global0_statement2:
 print 1
-global0_statement1_exit:
+global0_statement2_exit:
 printflush "message1"
 end

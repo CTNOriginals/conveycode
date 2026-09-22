@@ -1,10 +1,10 @@
 set global0_x false
-jump global0_statement2 equal global0_x true
-jump global0_statement1_exit always
+jump global0_statement3 equal global0_x true
 print 2
-jump global0_statement1_exit always
-global0_statement2:
+jump global0_statement2_exit always 
+
+global0_statement3:
 print 1
-global0_statement1_exit:
+global0_statement2_exit:
 printflush "message1"
 end

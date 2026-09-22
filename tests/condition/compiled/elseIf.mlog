@@ -1,16 +1,17 @@
 set global0_x 8
-jump global0_statement3 greaterThan global0_x 10
-jump global0_statement2 lessThan global0_x 10
-jump global0_statement1 equal global0_x 8
-jump global0_statement1_exit always
-global0_statement1:
-print 3
-jump global0_statement1_exit always
+jump global0_statement4 greaterThan global0_x 10
+jump global0_statement3 lessThan global0_x 10
+jump global0_statement2 equal global0_x 8
 global0_statement2:
-print 2
-jump global0_statement1_exit always
+print 3
+jump global0_statement2_exit always 
+
 global0_statement3:
+print 2
+jump global0_statement2_exit always 
+
+global0_statement4:
 print 1
-global0_statement1_exit:
+global0_statement2_exit:
 printflush "message1"
 end

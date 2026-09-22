@@ -1,30 +1,31 @@
-set x 1
-set y 0
-jump global0_statement1 equal x y
-global0_statement1:
+set global0_x 1
+set global0_y 0
+jump global0_statement2 equal global0_x global0_y
+global0_statement2:
 print "=="
-global0_statement1:
-jump global0_statement2 strictEqual x y
-global0_statement2:
+global0_statement2_exit:
+jump global0_statement3 strictEqual global0_x global0_y
+global0_statement3:
 print "==="
-global0_statement2:
-jump global0_statement3 notEqual x y
-global0_statement3:
+global0_statement3_exit:
+jump global0_statement4 notEqual global0_x global0_y
+global0_statement4:
 print "!="
-global0_statement3:
-jump global0_statement4 greaterThan x y
-global0_statement4:
+global0_statement4_exit:
+jump global0_statement5 greaterThan global0_x global0_y
+global0_statement5:
 print ">"
-global0_statement4:
-jump global0_statement5 lessThan x y
-global0_statement5:
+global0_statement5_exit:
+jump global0_statement6 lessThan global0_x global0_y
+global0_statement6:
 print "<"
-global0_statement5:
-jump global0_statement6 greaterThanEq x y
-global0_statement6:
+global0_statement6_exit:
+jump global0_statement7 greaterThanEq global0_x global0_y
+global0_statement7:
 print ">="
-global0_statement6:
-jump global0_statement7 lessThanEq x y
-global0_statement7:
+global0_statement7_exit:
+jump global0_statement8 lessThanEq global0_x global0_y
+global0_statement8:
 print "<="
-global0_statement7:
+global0_statement8_exit:
+end
