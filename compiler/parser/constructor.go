@@ -18,6 +18,7 @@ type ConstructorMap = map[lexer.BlockType]Constructor
 
 var constructors ConstructorMap
 var methodDefinitionBodies map[string][]Instruction
+var initialCaller *parser = nil
 
 var instructionSpacing = true //? for debugging readability
 
@@ -261,7 +262,10 @@ func init() {
 	}
 }
 
-var initialCaller *parser = nil
+func InitializeConstructor() {
+	methodDefinitionBodies = map[string][]Instruction{}
+	initialCaller = nil
+}
 
 func Construct(prs *parser) (instructions []Instruction) {
 	defer func() {

@@ -85,6 +85,7 @@ func CompileFile(source string, dest string) {
 
 	dest = fmt.Sprintf("%s/compiled/%s.mlog", filepath.Dir(source), utils.GetFileName(info.Name()))
 
+	parser.InitializeConstructor()
 	parser.InitializeScope()
 
 	fmt.Printf("\n-- %s %s --\n", color.InGreen("File"), color.InYellow(source))
