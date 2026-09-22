@@ -22,244 +22,245 @@ var initialCaller *parser = nil
 
 var instructionSpacing = true //? for debugging readability
 
-func init() {
-	methodDefinitionBodies = map[string][]Instruction{}
-	constructors = ConstructorMap{
-		lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var prefix = "set"
+var constructorDefinitions = ConstructorMap{
+	lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var prefix = "set"
 
-			var ident = block.GetIdentifier()
-			var itemIdent = block.FindItemByType(lexer.Identifier)
-			var identOrigin = scope.getVariableOrigin(ident)
+		var ident = block.GetIdentifier()
+		var itemIdent = block.FindItemByType(lexer.Identifier)
+		var identOrigin = scope.getVariableOrigin(ident)
 
-			var def = NewValueDefinitionFromBlock(block, lexer.Value, scope)
-			var label = scope.GetIdentifierLabel(ident)
+		var def = NewValueDefinitionFromBlock(block, lexer.Value, scope)
+		var label = scope.GetIdentifierLabel(ident)
 
-			//- Validation
-			if block.FindItemByType(lexer.Keyword).Typ != lexer.ItemError {
-				if scope.ContainsVariable(ident) {
-					var origVar = scope.GetVariableByIdentifier(ident)
-					panic(block.ErrorF(
-						itemIdent,
-						"Variable '%s' has already been declared at %s:%s",
-						color.InBlue(ident),
-						color.InYellow(origVar.block.BlockLine()),
-						color.InYellow(origVar.block.FindItemByType(lexer.Identifier).ItemColumn()),
-					))
-				} else {
-					scope.PushVariable(block)
-				}
+		//- Validation
+		if block.FindItemByType(lexer.Keyword).Typ != lexer.ItemError {
+			if scope.ContainsVariable(ident) {
+				var origVar = scope.GetVariableByIdentifier(ident)
+				panic(block.ErrorF(
+					itemIdent,
+					"Variable '%s' has already been declared at %s:%s",
+					color.InBlue(ident),
+					color.InYellow(origVar.block.BlockLine()),
+					color.InYellow(origVar.block.FindItemByType(lexer.Identifier).ItemColumn()),
+				))
 			} else {
-				if identOrigin.ident == constents.StringError {
-					panic(block.ErrorF(
-						itemIdent,
-						"Variable '%s' has not been declared",
-						color.InBlue(itemIdent.ValueString()),
-					))
-				} else {
-					label = identOrigin.AsLabel()
+				scope.PushVariable(block)
+			}
+		} else {
+			if identOrigin.ident == constents.StringError {
+				panic(block.ErrorF(
+					itemIdent,
+					"Variable '%s' has not been declared",
+					color.InBlue(itemIdent.ValueString()),
+				))
+			} else {
+				label = identOrigin.AsLabel()
+			}
+		}
+
+		//- Is the value a math operation of some sort?
+		if def.item.Tokens.Contains(tokenizer.Operator) {
+			for _, token := range def.item.Tokens {
+				if token.Typ == tokenizer.Operator {
+					ope, ok := syntax.MathOperators[string(token.Val)]
+
+					if !ok {
+						fmt.Printf(color.InRed("Math operator '%s' is not yet defined in MathOperatorStrings\n"), string(token.Val))
+						continue
+					}
+
+					var instruction = NewInstruction("op", ope, label)
+					instruction.Push(def.valuesOnly().Tokens.ValuesAsStringArray()...)
+
+					instructions = append(instructions, instruction)
 				}
 			}
 
-			//- Is the value a math operation of some sort?
-			if def.item.Tokens.Contains(tokenizer.Operator) {
-				for _, token := range def.item.Tokens {
+			return instructions
+		}
+
+		instructions = append(instructions, def.getValueInstructions()...)
+		instructions = append(instructions, NewInstruction(prefix, label, def.valuesOnly().ValueString()))
+
+		return instructions
+	},
+	lexer.BuiltIn: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
+		var valueDef = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
+		var args = valueDef.rawValues()
+
+		instructions = append(instructions, valueDef.getValueInstructions()...)
+
+		switch command {
+		case "print":
+			for _, arg := range args {
+				instructions = append(instructions, NewInstruction(syntax.GetCommandPrefix(command), arg))
+			}
+		default:
+			var instruction = NewInstruction(syntax.GetCommandPrefix(command))
+			instruction.Push(args...)
+			instructions = append(instructions, instruction)
+		}
+
+		return instructions
+	},
+	lexer.Statement: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var prefix = fmt.Sprintf("%s%d", scope.context, scope.id)
+		var jumps []Instruction
+		var exitLabel string
+		var exitInstruction Instruction
+
+		var subScope *Scope
+		var label string
+		var comparable string
+		var subInstructions []Instruction
+
+		for i := len(block.Items) - 1; i >= 0; i-- {
+			var item = block.Items[i]
+
+			switch item.Typ {
+			case lexer.Scope:
+				subScope = NewScope(Statement)
+				scope.PushChild(subScope)
+
+				var blocks = lexer.Lex(item.Tokens).Construct()
+				var prs = Parse(blocks, subScope)
+				subInstructions = Construct(prs)
+
+				label = fmt.Sprintf("%s_%s%d", prefix, Statement, subScope.id)
+				if i == len(block.Items)-1 {
+					exitLabel = fmt.Sprintf("%s_%s", label, "exit")
+					exitInstruction = NewInstruction("jump", exitLabel, "always", utils.If(instructionSpacing, "\n", ""))
+				}
+			case lexer.Condition:
+				var comparator = ""
+				var valueDef = NewValueDefinition(block, item, scope)
+				var values = valueDef.rawValues()
+
+				for _, token := range valueDef.item.Tokens {
 					if token.Typ == tokenizer.Operator {
-						ope, ok := syntax.MathOperators[string(token.Val)]
-
-						if !ok {
-							fmt.Printf(color.InRed("Math operator '%s' is not yet defined in MathOperatorStrings\n"), string(token.Val))
-							continue
+						if comparator != "" {
+							panic(block.ErrorF(item, "Multi conditional statements are not supported yet"))
 						}
-
-						var instruction = NewInstruction("op", ope, label)
-						instruction.Push(def.valuesOnly().Tokens.ValuesAsStringArray()...)
-
-						instructions = append(instructions, instruction)
+						comparator = string(token.Val)
 					}
 				}
 
-				return instructions
-			}
-
-			instructions = append(instructions, def.getValueInstructions()...)
-			instructions = append(instructions, NewInstruction(prefix, label, def.valuesOnly().ValueString()))
-
-			return instructions
-		},
-		lexer.BuiltIn: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var command = string(block.FindItemByType(lexer.Command).Tokens.FindTokenByType(tokenizer.Command).Val)
-			var valueDef = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
-			var args = valueDef.rawValues()
-
-			instructions = append(instructions, valueDef.getValueInstructions()...)
-
-			switch command {
-			case "print":
-				for _, arg := range args {
-					instructions = append(instructions, NewInstruction(syntax.GetCommandPrefix(command), arg))
+				if len(values) != 2 {
+					panic(block.ErrorF(item, "Conditional statements expect 2 comparable values but received %s", color.InRed(len(values))))
 				}
-			default:
-				var instruction = NewInstruction(syntax.GetCommandPrefix(command))
-				instruction.Push(args...)
-				instructions = append(instructions, instruction)
-			}
 
-			return instructions
-		},
-		lexer.Statement: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var prefix = fmt.Sprintf("%s%d", scope.context, scope.id)
-			var jumps []Instruction
-			var exitLabel string
-			var exitInstruction Instruction
+				comparable = fmt.Sprintf("%s %v %v", syntax.Comparators[string(comparator)], values[0], values[1])
+			case lexer.Keyword:
+				if item.ValueString() != "else" {
+					jumps = append([]Instruction{NewInstruction("jump", label, comparable)}, jumps...)
+					instructions = append(instructions, NewInstruction(label+":"))
+				}
 
-			var subScope *Scope
-			var label string
-			var comparable string
-			var subInstructions []Instruction
+				instructions = append(instructions, subInstructions...)
 
-			for i := len(block.Items) - 1; i >= 0; i-- {
-				var item = block.Items[i]
-
-				switch item.Typ {
-				case lexer.Scope:
-					subScope = NewScope(Statement)
-					scope.PushChild(subScope)
-
-					var blocks = lexer.Lex(item.Tokens).Construct()
-					var prs = Parse(blocks, subScope)
-					subInstructions = Construct(prs)
-
-					label = fmt.Sprintf("%s_%s%d", prefix, Statement, subScope.id)
-					if i == len(block.Items)-1 {
-						exitLabel = fmt.Sprintf("%s_%s", label, "exit")
-						exitInstruction = NewInstruction("jump", exitLabel, "always", utils.If(instructionSpacing, "\n", ""))
-					}
-				case lexer.Condition:
-					var comparator = ""
-					var valueDef = NewValueDefinition(block, item, scope)
-					var values = valueDef.rawValues()
-
-					for _, token := range valueDef.item.Tokens {
-						if token.Typ == tokenizer.Operator {
-							if comparator != "" {
-								panic(block.ErrorF(item, "Multi conditional statements are not supported yet"))
-							}
-							comparator = string(token.Val)
-						}
-					}
-
-					if len(values) != 2 {
-						panic(block.ErrorF(item, "Conditional statements expect 2 comparable values but received %s", color.InRed(len(values))))
-					}
-
-					comparable = fmt.Sprintf("%s %v %v", syntax.Comparators[string(comparator)], values[0], values[1])
-				case lexer.Keyword:
-					if item.ValueString() != "else" {
-						jumps = append([]Instruction{NewInstruction("jump", label, comparable)}, jumps...)
-						instructions = append(instructions, NewInstruction(label+":"))
-					}
-
-					instructions = append(instructions, subInstructions...)
-
-					if i > 0 {
-						//? The first (bottom in compiled result) statement doesnt need an exit jump as its already at the bottom of everything
-						instructions = append(instructions, exitInstruction)
-					}
+				if i > 0 {
+					//? The first (bottom in compiled result) statement doesnt need an exit jump as its already at the bottom of everything
+					instructions = append(instructions, exitInstruction)
 				}
 			}
+		}
 
-			// TODO Save some space here by checing if the condition does not include a "==="
-			// TODO and if so, invert the last condition and point it to the exit
-			// TODO this way, the last conditional (not else) statement can just flow through to the next line if "true"
-			//! BUG: this line below caused the exit instruction to be pasted right after the jump, so the last statement would always be skipped.
-			// jumps = append(jumps, exitInstruction)
+		// TODO Save some space here by checing if the condition does not include a "==="
+		// TODO and if so, invert the last condition and point it to the exit
+		// TODO this way, the last conditional (not else) statement can just flow through to the next line if "true"
+		//! BUG: this line below caused the exit instruction to be pasted right after the jump, so the last statement would always be skipped.
+		// jumps = append(jumps, exitInstruction)
 
-			instructions = append(jumps, instructions...)
-			instructions = append(instructions, NewInstruction(exitLabel+":"))
+		instructions = append(jumps, instructions...)
+		instructions = append(instructions, NewInstruction(exitLabel+":"))
 
-			return instructions
-		},
-		lexer.Method: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var ident = block.GetIdentifier()
-			var identItem = block.FindItemByType(lexer.Identifier)
+		return instructions
+	},
+	lexer.Method: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var ident = block.GetIdentifier()
+		var identItem = block.FindItemByType(lexer.Identifier)
 
-			//- Is this method already defined anywhere?
-			if scope.ContainsMethod(block) {
-				var orig = scope.GetMethodByIdentifier(ident)
-				panic(block.ErrorF(
-					identItem,
-					"Method '%s' has already be defined on line %s",
-					color.InPurple(ident),
-					color.InYellow(orig.block.FindItemByType(lexer.Identifier).ItemLine()),
-				))
-			}
-
-			var def = scope.PushMethod(block)
-
-			var body = def.block.FindItemByType(lexer.Scope)
-			var prs = ParseItem(body, def.scope)
-			var methodInstructions = Construct(prs)
-
-			methodDefinitionBodies[def.getMethodLabel()] = append(methodInstructions, NewInstruction(
-				"set",
-				"@counter",
-				fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
+		//- Is this method already defined anywhere?
+		if scope.ContainsMethod(block) {
+			var orig = scope.GetMethodByIdentifier(ident)
+			panic(block.ErrorF(
+				identItem,
+				"Method '%s' has already be defined on line %s",
+				color.InPurple(ident),
+				color.InYellow(orig.block.FindItemByType(lexer.Identifier).ItemLine()),
 			))
+		}
 
-			return instructions
-		},
-		lexer.Call: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var ident = block.GetIdentifier()
+		var def = scope.PushMethod(block)
 
-			var def = scope.getMethodOrigin(ident)
-			var method = def.block
+		var body = def.block.FindItemByType(lexer.Scope)
+		var prs = ParseItem(body, def.scope)
+		var methodInstructions = Construct(prs)
 
-			if method.IsError() {
-				panic(block.ErrorF(
-					block.FindItemByType(lexer.Arguments),
-					"Unknown method '%s'",
-					color.InPurple(ident),
-				))
-			}
+		methodDefinitionBodies[def.getMethodLabel()] = append(methodInstructions, NewInstruction(
+			"set",
+			"@counter",
+			fmt.Sprintf("%s_%s", def.scope.GetLabelPrefix(), "caller-adress"),
+		))
 
-			if block.GetArity() != method.GetArity() {
-				panic(block.ErrorF(
-					block.FindItemByType(lexer.Arguments),
-					"Method '%s%s' at line %s:\nExpected %s parameters, but received %s instead",
-					color.InPurple(ident),
-					color.InBlue(method.FindItemByType(lexer.Parameters).ValueString()),
-					color.InYellow(method.BlockLine()),
-					color.InGreen(method.GetArity()),
-					color.InRed(block.GetArity()),
-				))
-			}
+		return instructions
+	},
+	lexer.Call: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var ident = block.GetIdentifier()
 
-			var paramLabels = def.getParamLabels()
-			var args = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
-			for i, arg := range args.rawValues() {
-				instructions = append(instructions, NewInstruction("set", paramLabels[i], arg))
-			}
+		var def = scope.getMethodOrigin(ident)
+		var method = def.block
 
-			instructions = append(instructions,
-				NewInstruction("set", def.scope.GetIdentifierLabel("caller-adress"), constents.ReturnLinePlaceholder),
-				NewInstruction("jump", def.getMethodLabel(), "always"),
-			)
+		if method.IsError() {
+			panic(block.ErrorF(
+				block.FindItemByType(lexer.Arguments),
+				"Unknown method '%s'",
+				color.InPurple(ident),
+			))
+		}
 
-			return instructions
-		},
-		lexer.Return: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
-			var parentScope = scope.getSurroundingMethod()
-			var valueDef = NewValueDefinitionFromBlock(block, lexer.Value, parentScope)
-			// var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
-			var mockAssignment = CreateMockAssignment(block.BlockFile(), false, "return", valueDef.item.Tokens)
+		if block.GetArity() != method.GetArity() {
+			panic(block.ErrorF(
+				block.FindItemByType(lexer.Arguments),
+				"Method '%s%s' at line %s:\nExpected %s parameters, but received %s instead",
+				color.InPurple(ident),
+				color.InBlue(method.FindItemByType(lexer.Parameters).ValueString()),
+				color.InYellow(method.BlockLine()),
+				color.InGreen(method.GetArity()),
+				color.InRed(block.GetArity()),
+			))
+		}
 
-			instructions = append(instructions, valueDef.getValueInstructions()...)
-			instructions = append(instructions, Construct(Parse([]lexer.Block{mockAssignment}, valueDef.scope))...)
+		var paramLabels = def.getParamLabels()
+		var args = NewValueDefinitionFromBlock(block, lexer.Arguments, scope)
+		for i, arg := range args.rawValues() {
+			instructions = append(instructions, NewInstruction("set", paramLabels[i], arg))
+		}
 
-			return
-		},
-	}
+		instructions = append(instructions,
+			NewInstruction("set", def.scope.GetIdentifierLabel("caller-adress"), constents.ReturnLinePlaceholder),
+			NewInstruction("jump", def.getMethodLabel(), "always"),
+		)
+
+		return instructions
+	},
+	lexer.Return: func(block lexer.Block, scope *Scope) (instructions []Instruction) {
+		var parentScope = scope.getSurroundingMethod()
+		var valueDef = NewValueDefinitionFromBlock(block, lexer.Value, parentScope)
+		// var mockAssignment = fmt.Sprintf("var %s = %s", "return", valueDef.item.Tokens.Stream())
+		var mockAssignment = CreateMockAssignment(block.BlockFile(), false, "return", valueDef.item.Tokens)
+
+		instructions = append(instructions, valueDef.getValueInstructions()...)
+		instructions = append(instructions, Construct(Parse([]lexer.Block{mockAssignment}, valueDef.scope))...)
+
+		return
+	},
+}
+
+func init() {
+	constructors = constructorDefinitions
 }
 
 func InitializeConstructor() {
