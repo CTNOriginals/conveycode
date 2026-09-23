@@ -1,14 +1,14 @@
 func func3() {
-	$print("func3")
+	$print("func3\n")
 	return 8
 }
 
 func func1() {
-	$print("func1")
+	$print("func1\n")
 	var x = func3()
 
-	func func2(fn) {
-		$print("func2: ", fn())
+	func func2(num) {
+		$print("func2: ", num, "\n")
 	}
 
 	func2(x)
