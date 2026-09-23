@@ -18,9 +18,11 @@ var testCases [][]string = [][]string{
 	// {"tests/condition/if.conv", "tests/condition/compiled/"},
 	// {"tests/condition/ifElse.conv", "tests/condition/compiled/"},
 	// {"tests/condition/elseIf.conv", "tests/condition/compiled/"},
-	{"tests/condition/", "tests/condition/compiled/"},
-	{"tests/functions/nest.conv", "tests/functions/compiled/nest"},
-	{"tests/prototype/proto.conv", "tests/prototype/compiled/proto"},
+	// {"tests/condition/", "tests/condition/compiled/"},
+	// {"tests/functions/nest.conv", "tests/functions/compiled/nest"},
+	{"tests/functions/params.conv", "tests/functions/compiled/"},
+	// {"tests/functions/return.conv", "tests/functions/compiled/"},
+	// {"tests/prototype/proto.conv", "tests/prototype/compiled/proto"},
 }
 
 // var Args Arguments

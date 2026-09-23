@@ -1,0 +1,13 @@
+set method2_x 1
+set method2_y 10
+set method2_caller-adress 4
+jump global0_method2 always
+print method2_return
+printflush message1
+end
+global0_method2:
+jump method2_statement3 greaterThan method2_x method2_y
+method2_statement3:
+op sub method2_return method2_x method2_y
+method2_statement3_exit:
+set @counter method2_caller-adress

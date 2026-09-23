@@ -1,0 +1,11 @@
+func foo(x, y) {
+	if (x > y) {
+		return x - y
+	}
+
+	foo(x * 2, y)
+	return 
+}
+
+$print(foo(1, 10))
+$flush(#message1)

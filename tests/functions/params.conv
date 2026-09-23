@@ -1,0 +1,9 @@
+func foo(x, y) {
+	return x * y
+}
+
+var a = 8
+var num = foo(a, 2)
+
+$print(num)
+$flush(#message1)

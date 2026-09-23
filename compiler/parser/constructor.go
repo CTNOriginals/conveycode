@@ -20,7 +20,7 @@ var constructors ConstructorMap
 var methodDefinitionBodies map[string][]Instruction
 var initialCaller *parser = nil
 
-var instructionSpacing = true //? for debugging readability
+var instructionSpacing = false //? for debugging readability
 
 var constructorDefinitions = ConstructorMap{
 	lexer.Assignment: func(block lexer.Block, scope *Scope) (instructions []Instruction) {

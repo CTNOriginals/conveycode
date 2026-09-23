@@ -1,0 +1,12 @@
+set global0_a 8
+set method2_x global0_a
+set method2_y 2
+set method2_caller-adress 5
+jump global0_method2 always
+set global0_num method2_return
+print global0_num
+printflush message1
+end
+global0_method2:
+op mul method2_return method2_x method2_y
+set @counter method2_caller-adress
